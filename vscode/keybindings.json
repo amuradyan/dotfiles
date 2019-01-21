@@ -1,0 +1,32 @@
+// Place your key bindings in this file to overwrite the defaults
+[
+    {
+        "key": "ctrl+k shift+'",
+        "command": "workbench.action.newGroupBelow"
+    },
+    {
+        "key": "ctrl+k shift+5",
+        "command": "workbench.action.newGroupRight"
+    },
+    {
+        "key": "ctrl+m ctrl+p",
+        "command": "workbench.action.toggleMaximizedPanel",
+    },
+    {
+        "key": "ctrl+8 ctrl+m",
+        "command": "python.refactorExtractMethod"
+    },
+    {
+        "key": "ctrl+8 ctrl+v",
+        "command": "python.refactorExtractVariable"
+    },
+    {
+        "key": "escape escape",
+        "command": "-workbench.action.exitZenMode",
+        "when": "inZenMode"
+    },
+    {
+        "key": "ctrl+k ctrl+w",
+        "command": "workbench.action.openWorkspace"
+    }
+]
