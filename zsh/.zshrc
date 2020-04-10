@@ -1,12 +1,14 @@
-# The following lines were added by compinstall
+USER=$(whoami)
 
+# The following lines were added by compinstall
 zstyle ':completion:*' completer _complete _ignored _approximate
-zstyle :compinstall filename '/home/spectrum/.zshrc'
+zstyle :compinstall filename "/home/$USER/.zshrc"
 
 # misc
 alias ll='ls -al'
 alias lS='ls -1FSsh'
 alias ...='../..'
+alias mkdirp='mkdir -p'
 
 # Pyhton
 alias ipy='/usr/bin/ipython3'
@@ -25,19 +27,20 @@ alias rmorig='find . -name '"'"'*.orig'"'"' -delete'
 
 # mux/tmux
 alias tmux='stty stop "" -ixoff; tmux'
-alias muxv='mux start v'
-alias muxvh='mux start vh'
-alias muxhv='mux start hv'
-alias muxhvh='mux start hvh'
+alias muxv='mux start v ~'
+alias muxvh='mux start vh ~'
+alias muxhv='mux start hv ~'
+alias muxhvh='mux start hvh ~'
+alias txks='tmux kill-server'
+alias txls='tmux ls'
+alias rgr='ranger'
+
 
 start_tmux() {
   local DEFAULT_LAYOUT="v"
   local DEFAULT_PATH=$(pwd)
   local DEFAULT_NAME="Default"
 }
-
-# ranger
-alias rgr='~/devel/ranger/ranger.py'
 
 autoload -Uz compinit
 compinit
@@ -62,7 +65,7 @@ RPROMPT="[%{$fg_no_bold[yellow]%}%?%{$reset_color%}]"
 setopt PROMPT_SUBST
 export GIT_PS1_SHOWSTASHSTATE="yes"
 PS1='%{$fg_no_bold[green]%}%6~%{$fg_bold[yellow]%} $(__git_ps1 "(%s) ")%{$reset_color%}
-> ' >>~/.zshrc
+ƒ ' >>~/.zshrc
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 
@@ -75,12 +78,12 @@ export EDITOR=vim
 export DISPLAY=localhost:0.0
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-export SDKMAN_DIR="/home/spectrum/.sdkman"
-[[ -s "/home/spectrum/.sdkman/bin/sdkman-init.sh" ]] && source "/home/spectrum/.sdkman/bin/sdkman-init.sh"
+export SDKMAN_DIR="/home/$USER/.sdkman"
+[[ -s "/home/$USER/.sdkman/bin/sdkman-init.sh" ]] && source "/home/$USER/.sdkman/bin/sdkman-init.sh"
 
-SPARK_HOME="/home/spectrum/devel/spark-2.3.3-bin-hadoop2.7/"
-export PATH=$SPARK_HOME/bin:$PATH
+DOTTY_HOME="/home/$USER/devel/dotty-0.20.0"
+export PATH=$DOTTY_HOME/bin:$PATH
 
+export RANGER_LOAD_DEFAULT_RC=FALSE
 
-clear
-
+plugins=(git colored-man-pages colorize)

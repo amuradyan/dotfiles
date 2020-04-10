@@ -20,5 +20,5 @@ windows:
   - editor:
       layout: bd28,185x59,0,0{92x59,0,0,0,92x59,93,0,1}
       panes:
-        - zsh
-        - zsh
+        - clear
+        - clear
