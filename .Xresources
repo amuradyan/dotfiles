@@ -1,0 +1,17 @@
+! Xresources file
+
+URxvt*inheritPixmap: true
+URxvt*transparent: true
+URxvt*shading: 20
+
+URxvt*foreground: white
+
+URxvt.perl-lib:/home/spectrum/devel/urxvt-perls
+
+URxvt.perl-ext-common: keyboard-select
+URxvt.keysym.Alt-v: perl:keyboard-select:activate
+
+Xft.dpi: 96
+
+URxvt.font: xft:Px437 IBM ISO8:antialias=true:size=10:autohint=true:hinting=true:hintstyle=hintfull:rgba:vertical:lcdfilter=lcdlight
+URxvt.scrollBar: false
