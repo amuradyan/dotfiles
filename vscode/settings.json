@@ -67,6 +67,10 @@
     "dotty.trace.machineId": "834cec14-382a-4e2c-ab28-a67a95283f40",
     "debug.console.fontSize": 12,
     "vsonline.authentication.accountProvider": "Microsoft",
-    "terminal.integrated.shell.windows": "C:\\WINDOWS\\System32\\cmd.exe",
-    "explorer.confirmDelete": false
+    "terminal.integrated.shell.windows": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "explorer.confirmDelete": false,
+    "java.semanticHighlighting.enabled": true,
+    "vsonline.accountProvider": "Microsoft",
+    "debug.console.fontFamily": "Px437 IBM ISO9",
+    "cucumberautocomplete.onTypeFormat": true
 }

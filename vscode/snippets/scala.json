@@ -1,51 +1,59 @@
 {
-	"Match": {
-		"prefix": "match",
-		"body": [
-		  "${1:variable} match {",
-		  "  case ${2:first_case} => ${3:first_value}",
-		  "  case _ => ${4:other_case}",
-		  "}"
-		],
-		"description": "Scala match"
-	  },
-	"Object": {
-		"prefix": "object",
-		"body": [
-		  "object ${1:name} {",
-		  "  ${2:body}",
-		  "}"
-		],
-		"description": "Scala object"
-	  },
-	"Main method": {
-		"prefix": "main",
-		"body": [
-		  "def main(args: Array[String]): Unit = {",
-		  "  ${1:body}",
-		  "}"
-		],
-		"description": "Scala main method"
-	  },
-	"Case class declaration": {
-		"prefix": "ccl",
-		"body": [
-		  "case class ${1:name}(${2:param}: ${3:type})",
-		],
-		"description": "Scala case class defintion"
-	  },
-	"Class declaration": {
-		"prefix": "cle",
-		"body": [
-		  "class ${1:name} extends ${2:parent}",
-		],
-		"description": "Scala case class defintion"
-	  },
-	"Final case class declaration": {
-		"prefix": "fccl",
-		"body": [
-		  "final case class ${1:name}(${2:param}: ${3:type})",
-		],
-		"description": "Scala final case class defintion"
-	  }
+  "Match": {
+    "prefix": "match",
+    "body": [
+      "${1:variable} match {",
+      "  case ${2:first_case} => ${3:first_value}",
+      "  case _ => ${4:other_case}",
+      "}"
+    ],
+    "description": "Scala match"
+  },
+  "Object": {
+    "prefix": "object",
+    "body": [
+      "object ${1:name} {",
+      "  ${2:body}",
+      "}"
+    ],
+    "description": "Scala object"
+  },
+  "Main method": {
+    "prefix": "main",
+    "body": [
+      "def main(args: Array[String]): Unit = {",
+      "  ${1:body}",
+      "}"
+    ],
+    "description": "Scala main method"
+  },
+  "Case class declaration": {
+    "prefix": "ccl",
+    "body": [
+      "case class ${1:name}(${2:param}: ${3:type})",
+    ],
+    "description": "Scala case class defintion"
+  },
+  "Class declaration": {
+    "prefix": "cle",
+    "body": [
+      "class ${1:name} extends ${2:parent}",
+    ],
+    "description": "Scala case class defintion"
+  },
+  "Final case class declaration": {
+    "prefix": "fccl",
+    "body": [
+      "final case class ${1:name}(${2:param}: ${3:type})",
+    ],
+    "description": "Scala final case class defintion"
+  },
+  "try/catch statemant": {
+    "prefix": "try",
+    "body": [
+      "try ${1:expression}",
+      "catch { case e: ${2:exception} => ${3:handler}}",
+    ],
+    "description": "Scala try/catch statement"
+  },  
 }

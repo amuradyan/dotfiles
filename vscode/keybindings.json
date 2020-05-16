@@ -82,5 +82,25 @@
     {
         "key": "ctrl+f",
         "command": "-actions.find"
+    },
+    {
+        "key": "ctrl+m g",
+        "command": "workbench.action.minimizeOtherEditors"
+    },
+    {
+        "key": "ctrl+l c",
+        "command": "workbench.action.toggleCenteredLayout"
+    },
+    {
+        "key": "ctrl+l 2",
+        "command": "workbench.action.editorLayoutTwoColumns"
+    },
+    {
+        "key": "ctrl+l 1",
+        "command": "workbench.action.editorLayoutSingle"
+    },
+    {
+        "key": "ctrl+l 3",
+        "command": "workbench.action.editorLayoutThreeColumns"
     }
 ]
