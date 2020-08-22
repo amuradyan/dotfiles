@@ -439,6 +439,8 @@ __git_ps1 ()
 					git describe --contains HEAD ;;
 				(branch)
 					git describe --contains --all HEAD ;;
+			  (tag)
+					git describe --tags HEAD ;;
 				(describe)
 					git describe HEAD ;;
 				(* | default)

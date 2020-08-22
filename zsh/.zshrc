@@ -4,6 +4,10 @@ USER=$(whoami)
 zstyle ':completion:*' completer _complete _ignored _approximate
 zstyle :compinstall filename "/home/$USER/.zshrc"
 
+# Base16 Shell
+BASE16_SHELL="$HOME/.config/base16-shell/"
+[ -n "$PS1" ] && [ -s "$BASE16_SHELL/profile_helper.sh" ] && eval "$("$BASE16_SHELL/profile_helper.sh")"
+
 # misc
 alias ll='ls -al'
 alias lS='ls -1FSsh'
@@ -64,6 +68,7 @@ source ~/.git-prompt.sh
 RPROMPT="[%{$fg_no_bold[yellow]%}%?%{$reset_color%}]"
 setopt PROMPT_SUBST
 export GIT_PS1_SHOWSTASHSTATE="yes"
+export GIT_PS1_DESCRIBE_STYLE="contains"
 PS1='%{$fg_no_bold[green]%}%6~%{$fg_bold[yellow]%} $(__git_ps1 "(%s) ")%{$reset_color%}
 ƒ ' >>~/.zshrc
 export LC_ALL=en_US.UTF-8
@@ -71,7 +76,7 @@ export LANG=en_US.UTF-8
 
 # enables cowsay and fortune.
 if [ -x /usr/games/cowsay -a -x /usr/games/fortune ]; then
-  fortune | cowsay -f $(ls /usr/share/cowsay/cows/ | shuf -n1)
+  fortune | cowsay -f $(ls /usr/share/cowsay/cows/ | shuf -n1) | lolcat
 fi
 
 export EDITOR=vim
