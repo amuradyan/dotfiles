@@ -1,0 +1,16 @@
+# Override the default terminal colors to white on black.
+color default		white	black
+# Diff colors
+color diff-header	yellow	default
+color diff-index	blue	default
+color diff-chunk	magenta	default
+color "Reported-by:"	green	default
+# View-specific color
+color tree.date		black	cyan	bold
+
+bind generic S :source ~/.tigrc
+
+bind status a !?git commit --amend
+bind status p !?git push -u origin %(branch)
+
+bind refs N !git checkout -b "%(prompt Enter branch name:)"
