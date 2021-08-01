@@ -30,7 +30,6 @@
         "latedef": true,
         "varstmt": true
     },
-    "window.zoomLevel": -1,
     "[jsonc]": {
         "editor.defaultFormatter": "HookyQR.beautify"
     },
@@ -63,7 +62,6 @@
     "gitlens.views.search.location": "gitlens",
     "quarkus.tools.alwaysShowWelcomePage": false,
     "workbench.startupEditor": "newUntitledFile",
-    "metals.mavenScript": " /usr/lib/jvm/java-11-openjdk-amd64/",
     "dotty.trace.machineId": "834cec14-382a-4e2c-ab28-a67a95283f40",
     "debug.console.fontSize": 12,
     "vsonline.authentication.accountProvider": "Microsoft",
@@ -72,5 +70,107 @@
     "java.semanticHighlighting.enabled": true,
     "vsonline.accountProvider": "Microsoft",
     "debug.console.fontFamily": "Px437 IBM ISO9",
-    "cucumberautocomplete.onTypeFormat": true
+    "cucumberautocomplete.onTypeFormat": true,
+    "zenMode.hideStatusBar": false,
+    "codespaces.accountProvider": "Microsoft",
+    "editor.unusualLineTerminators": "off",
+    "python.languageServer": "Microsoft",
+    "java.imports.gradle.wrapper.checksums": [
+        {
+            "sha256": "50726ef76b6599d458dd37169a6b42d86d3790c83f6065a398e3e672448d18c6",
+            "allowed": true
+        }
+    ],
+    "java.requirements.JDK11Warning": false,
+    "metals.serverVersion": "0.10.5",
+    "cSpell.userWords": [
+        "Aramayis",
+        "Autofilled",
+        "BROWSERSTACK",
+        "Conz",
+        "DDMMYYYY",
+        "Eether",
+        "Keebio",
+        "Levinson",
+        "Lizt",
+        "Nito",
+        "Numpad",
+        "Nyquist",
+        "PCBs",
+        "Qibord",
+        "SIGNIN",
+        "Sativex",
+        "Schedulings",
+        "Signup",
+        "Steyt",
+        "fpinscala",
+        "gabp",
+        "geocoder",
+        "handside",
+        "ints",
+        "lastname",
+        "maus",
+        "nonets",
+        "ortholinear",
+        "runspider",
+        "scalatest",
+        "scrapy",
+        "spacebar",
+        "stringification",
+        "suml",
+        "sumr",
+        "thead",
+        "unshifted"
+    ],
+    "files.watcherExclude": {
+        "**/.bloop": true,
+        "**/.metals": true,
+        "**/.ammonite": true
+    },
+    "metals.bloopVersion": "1.4.8",
+    "java.project.importOnFirstTimeStartup": "automatic",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-12",
+            "path": "C:\\Program Files\\Java\\jdk-12.0.1"
+        },
+        {
+            "name": "JavaSE-14",
+            "path": "D:\\devel\\java\\jdk-14.0.1"
+        }
+    ],
+    "githubPullRequests.remotes": [
+        "origin"
+    ],
+    "java.home": "C:\\Program Files\\Java\\jdk-12.0.1",
+    "java.import.gradle.home": "C:\\Program Files\\Java\\jdk-12.0.1",
+    "[java]": {
+        "editor.defaultFormatter": "redhat.java"
+    },
+    "[xml]": {
+        "editor.defaultFormatter": "redhat.vscode-xml"
+    },
+    "workbench.editor.untitled.hint": "hidden",
+    "editor.minimap.enabled": false,
+    "java.saveActions.organizeImports": true,
+    "java.completion.filteredTypes": [
+        "java.awt.*",
+        "com.sun.*",
+        "sun.*"
+    ],
+    "java.completion.importOrder": [
+        "",
+        "javax",
+        "java",
+        "#"
+    ],
+    "security.workspace.trust.untrustedFiles": "open",
+    "editor.inlineSuggest.enabled": true,
+    "github.copilot.enable": {
+        "*": true,
+        "yaml": false,
+        "plaintext": true,
+        "markdown": true
+    },
+    "window.zoomLevel": -1
 }

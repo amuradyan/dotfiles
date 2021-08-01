@@ -39,6 +39,10 @@ alias txks='tmux kill-server'
 alias txls='tmux ls'
 alias rgr='ranger'
 
+# scala3
+alias scala3='~/devel/scala3/bin/scala'
+alias scalac3='~/devel/scala3/bin/scalac'
+alias scaladoc3='~/devel/scala3/bin/scaladoc'
 
 start_tmux() {
   local DEFAULT_LAYOUT="v"
@@ -80,15 +84,22 @@ if [ -x /usr/games/cowsay -a -x /usr/games/fortune ]; then
 fi
 
 export EDITOR=vim
-export DISPLAY=localhost:0.0
+export DISPLAY=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2; exit;}'):0.0
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="/home/$USER/.sdkman"
 [[ -s "/home/$USER/.sdkman/bin/sdkman-init.sh" ]] && source "/home/$USER/.sdkman/bin/sdkman-init.sh"
 
 DOTTY_HOME="/home/$USER/devel/dotty-0.20.0"
-export PATH=$DOTTY_HOME/bin:$PATH
+
+export PATH=$HOME/.local/bin:$DOTTY_HOME/bin:$PATH
 
 export RANGER_LOAD_DEFAULT_RC=FALSE
 
 plugins=(git colored-man-pages colorize)
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+

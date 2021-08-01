@@ -12,5 +12,9 @@ bind generic S :source ~/.tigrc
 
 bind status a !?git commit --amend
 bind status p !?git push -u origin %(branch)
+bind status S !?git stash save
+bind status T !?git stash push -p
+bind status A !git add .
 
-bind refs N !git checkout -b "%(prompt Enter branch name:)"
+bind refs N !?git checkout -b "%(prompt Enter branch name:)"
+bind refs M !?git merge --ff-only %(branch)
