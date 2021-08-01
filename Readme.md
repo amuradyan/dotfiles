@@ -11,3 +11,7 @@ This repo contains settings for different tools (a la dotfiles)
 ## Stuff I install
 
 > sudo apt install mc tmux tmuxinator tig zsh
+
+## Awesome oldschool fonts everybody needs
+
+https://int10h.org/oldschool-pc-fonts/
