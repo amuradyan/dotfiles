@@ -10,6 +10,8 @@ color tree.date		black	cyan	bold
 
 bind generic S :source ~/.tigrc
 
+bind refs P !?git pull %(branch)
+
 bind status a !?git commit --amend
 bind status p !?git push -u origin %(branch)
 bind status S !?git stash save

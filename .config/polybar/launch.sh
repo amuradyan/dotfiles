@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
-killall -q polybar
+if type "xrandr"; then
+  for m in $(xrandr --query | grep " connected" | cut -d" " -f1); do
+    MONITOR=$m polybar --reload top &
+  done
+else
+  polybar --reload top &
+fi
 
-polybar top >> /tmp/top_bar.log 2>&1 &
+# killall -q polybar
+
+# polybar top >> /tmp/top_bar.log 2>&1 &
