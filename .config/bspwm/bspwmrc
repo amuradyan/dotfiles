@@ -9,6 +9,7 @@ xrdb ~/.Xresources
 $HOME/.config/bspwm/initial_setup.sh
 $HOME/.config/polybar/launch.sh &
 $HOME/.config/bspwm/monitor_hotplug.sh &
+$HOME/.config/bspwm/battery_notifier.sh &
 
 feh --bg-fill ~/death-star.jpg
 
