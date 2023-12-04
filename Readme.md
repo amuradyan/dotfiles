@@ -10,7 +10,7 @@ This repo contains settings for different tools (a la dotfiles)
 
 ## Stuff I install
 
-> sudo apt install mc tmux tmuxinator tig zsh
+> sudo apt install mc tmux tmuxinator tig zsh iwd xsecurelock rofi polybar dunst
 
 ## Awesome oldschool fonts everybody needs
 
