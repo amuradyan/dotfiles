@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/usr/bin/env bash
 
 sxhkd &
 
@@ -6,17 +6,9 @@ setxkbmap -option caps:escape
 
 xrdb ~/.Xresources
 
-if echo $(xrandr -q) | grep 'HDMI-1 connected'; then
-    xrandr --output eDP-1 --primary --mode 1920x1080 --output HDMI-1 --auto --mode 1920x1080 --above eDP-1
-    bspc monitor HDMI-1 -d I II III IV V VI VII
-    bspc monitor eDP-1 -d VIII IX X
-else
-  echo "Done"
-    xrandr --output HDMI-1 --off
-    bspc monitor eDP-1 -d I II III IV V VI VII VIII IX X
-fi
-
+$HOME/.config/bspwm/initial_setup.sh
 $HOME/.config/polybar/launch.sh &
+$HOME/.config/bspwm/monitor_hotplug.sh &
 
 feh --bg-fill ~/death-star.jpg
 
