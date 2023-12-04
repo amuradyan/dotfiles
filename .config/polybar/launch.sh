@@ -7,7 +7,3 @@ if type "xrandr"; then
 else
   polybar --reload top &
 fi
-
-# killall -q polybar
-
-# polybar top >> /tmp/top_bar.log 2>&1 &
