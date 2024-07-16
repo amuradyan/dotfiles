@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+SNAPSHOTS_DIR="$HOME/snapshots"
+
+# Check if the snapshots directory exists, and create it if it doesn't.
+if [ ! -d "$SNAPSHOTS_DIR" ]; then
+  mkdir -p "$SNAPSHOTS_DIR"
+fi
+
+if [ $# -eq 0 ]; then
+  NAME="$SNAPSHOTS_DIR/snap-$(date +%F.%T).png"
+else
+  NAME="$SNAPSHOTS_DIR/$1.png"
+fi
+
+scrot -s "$NAME"
+
