@@ -1,0 +1,7 @@
+URxvt*depth: 32
+URxvt*inheritPixmap: true
+URxvt*transparent: true
+URxvt*shading: 30
+URxvt*foreground: white
+URxvt.font: xft:Px437 IBM DOS ISO8
+URxvt.scrollBar: false
