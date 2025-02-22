@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-CURRENT_LAYOUT=$(setxkbmap -query | grep layout | cut -d ' ' -f 2- | sed 's/[ \t]*//' | awk '{ print toupper($0) }')
-
-printf "%%{F#cd40e6}$CURRENT_LAYOUT%%{F-}"

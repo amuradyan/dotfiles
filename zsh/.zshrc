@@ -6,7 +6,7 @@ zstyle :compinstall filename "/home/$USER/.zshrc"
 
 # Base16 Shell
 BASE16_SHELL="$HOME/.config/base16-shell/"
-[ -n "$PS1" ] && [ -s "$BASE16_SHELL/profile_helper.sh" ] && eval "$("$BASE16_SHELL/profile_helper.sh")"
+[ -n "$PS1" ] && [ -s "$BASE16_SHELL/profile_helper.sh" ] && source "$BASE16_SHELL/profile_helper.sh"
 
 # misc
 alias ll='ls -al'
@@ -15,8 +15,7 @@ alias ...='../..'
 alias mkdirp='mkdir -p'
 
 # Pyhton
-alias ipy='/usr/bin/ipython3'
-alias py='/usr/bin/python3.7'
+alias py='python'
 
 # git
 alias gs='git status'
@@ -44,6 +43,10 @@ alias scala3='~/devel/scala3/bin/scala'
 alias scalac3='~/devel/scala3/bin/scalac'
 alias scaladoc3='~/devel/scala3/bin/scaladoc'
 
+
+# mc
+alias mcn='mc --nocolor'
+
 start_tmux() {
   local DEFAULT_LAYOUT="v"
   local DEFAULT_PATH=$(pwd)
@@ -55,7 +58,7 @@ compinit
 # End of lines added by compinstall
 # Coloring and transparency setings
 
-[ -n "$XTERM_VERSION" ] && transset-df -a >/dev/null
+# [ -n "$XTERM_VERSION" ] && transset-df -a >/dev/null
 
 autoload -U colors && colors
 
@@ -79,27 +82,14 @@ export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 
 # enables cowsay and fortune.
-if [ -x /usr/games/cowsay -a -x /usr/games/fortune ]; then
-  fortune | cowsay -f $(ls /usr/share/cowsay/cows/ | shuf -n1) | lolcat
-fi
+# if [ -x /usr/games/cowsay -a -x /usr/games/fortune ]; then
+fortune | cowsay -r | lolcat
+# fi
 
-export EDITOR=vim
-export DISPLAY=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2; exit;}'):0.0
-
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-export SDKMAN_DIR="/home/$USER/.sdkman"
-[[ -s "/home/$USER/.sdkman/bin/sdkman-init.sh" ]] && source "/home/$USER/.sdkman/bin/sdkman-init.sh"
-
-DOTTY_HOME="/home/$USER/devel/dotty-0.20.0"
-
-export PATH=$HOME/.local/bin:$DOTTY_HOME/bin:$PATH
+export EDITOR=hx
+# export DISPLAY=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2; exit;}'):0.0
 
 export RANGER_LOAD_DEFAULT_RC=FALSE
 
 plugins=(git colored-man-pages colorize)
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
 
