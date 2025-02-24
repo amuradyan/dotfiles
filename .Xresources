@@ -1,7 +1,13 @@
-URxvt*depth: 32
-URxvt*inheritPixmap: true
-URxvt*transparent: true
-URxvt*shading: 30
-URxvt*foreground: white
-URxvt.font: xft:Px437 IBM DOS ISO8
-URxvt.scrollBar: false
+URxvt.perl-ext-common:    default,tabbed,matcher,resize-font,-tabbed
+URxvt*depth:              32
+URxvt*inheritPixmap:      true
+URxvt*transparent:        true
+URxvt*shading:            30
+URxvt*foreground:         grey
+URxvt.font:               xft:Px437 IBM DOS ISO8:size=12
+URxvt.scrollBar:          false
+URxvt.keysym.C-minus:     resize-font:smaller
+URxvt.keysym.C-S-equal:   resize-font:bigger
+URxvt.keysym.C-equal:     resize-font:reset
+URxvt.keysym.C-question:  resize-font:show
+Xft.dpi:                  120
