@@ -12,6 +12,11 @@ This repo contains settings for different tools (a la dotfiles)
 
 > sudo apt install mc tmux tmuxinator tig zsh iwd xsecurelock rofi polybar dunst scrot
 
+
+
 ## Awesome oldschool fonts everybody needs
 
 https://int10h.org/oldschool-pc-fonts/
+
+
+URxvt [font resize](https://github.com/simmel/urxvt-resize-font) should be installed
