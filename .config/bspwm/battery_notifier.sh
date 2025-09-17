@@ -46,7 +46,7 @@ while true; do
   current_charge=$(cat "$BATTERY_PATH/capacity")
 
   if [ "$current_charge" -lt "$previous_charge" ]; then
-    if [ "$current_charge" -le 5 ] && [ "$current_charge" -ge 2 ]; then
+    if [ "$current_charge" -le 5 ] && [ "$current_charge" -ge 4 ]; then
       send_notification "$CRITICAL"
     elif [ "$current_charge" -eq 10 ]; then
       send_notification "$WORRYING"
