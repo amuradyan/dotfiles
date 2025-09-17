@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
 
-sxhkd &
-
-setxkbmap -option caps:escape
-
 xrdb ~/.Xresources
 
+# Let initial_setup.sh handle monitor detection and configuration
 $HOME/.config/bspwm/initial_setup.sh
 $HOME/.config/polybar/launch.sh &
 $HOME/.config/bspwm/monitor_hotplug.sh &

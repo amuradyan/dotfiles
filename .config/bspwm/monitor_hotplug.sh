@@ -5,7 +5,7 @@ POLYBAR_LAUNCH_SCRIPT=~/.config/polybar/launch.sh
 PREVIOUS_STATE=""
 
 while true; do
-    HDMI_CONNECTED=$(xrandr -q | grep 'HDMI-1 connected')
+    HDMI_CONNECTED=$(xrandr -q | grep 'HDMI-0 connected')
     DP_CONNECTED=$(xrandr -q | grep -w 'DP-1 connected')
     CURRENT_STATE="$HDMI_CONNECTED$DP_CONNECTED"
 
