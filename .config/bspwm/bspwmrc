@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 xrdb ~/.Xresources
+setxkbmap -option caps:escape
 
 # Let initial_setup.sh handle monitor detection and configuration
 $HOME/.config/bspwm/initial_setup.sh
