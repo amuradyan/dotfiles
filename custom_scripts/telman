@@ -1,0 +1,772 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# telman - bspwm session manager
+# Save, list, and restore desktop layouts (windows, positions, split ratios)
+
+readonly SESSIONS_DIR="$HOME/.config/bspwm/sessions"
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly RED='\033[0;31m'
+readonly CYAN='\033[0;36m'
+readonly DIM='\033[2m'
+readonly NC='\033[0m'
+
+log_info()  { echo -e "${GREEN}[telman]${NC} $1"; }
+log_warn()  { echo -e "${YELLOW}[telman]${NC} $1"; }
+log_error() { echo -e "${RED}[telman]${NC} $1"; }
+
+to_roman() {
+    local -a numerals=(I II III IV V VI VII VIII IX X)
+    echo "${numerals[$1-1]}"
+}
+
+# Parse desktop args (1-10, !1-!10) into a filtered list of roman numeral names.
+# With no args, returns empty string (meaning "all desktops").
+resolve_desktops() {
+    local -a includes=() excludes=()
+
+    for arg in "$@"; do
+        if [[ "$arg" == !* ]]; then
+            local num="${arg#!}"
+            excludes+=("$(to_roman "$num")")
+        else
+            includes+=("$(to_roman "$arg")")
+        fi
+    done
+
+    if [ ${#includes[@]} -eq 0 ] && [ ${#excludes[@]} -eq 0 ]; then
+        return
+    fi
+
+    # Start with includes, or all occupied desktops if only excludes given
+    local -a result=()
+    if [ ${#includes[@]} -eq 0 ]; then
+        while IFS= read -r d; do
+            result+=("$d")
+        done < <(bspc query -D -m --names 2>/dev/null)
+    else
+        result=("${includes[@]}")
+    fi
+
+    # Remove excludes
+    if [ ${#excludes[@]} -gt 0 ]; then
+        local -a filtered=()
+        for d in "${result[@]}"; do
+            local excluded=false
+            for e in "${excludes[@]}"; do
+                [ "$d" = "$e" ] && excluded=true
+            done
+            [ "$excluded" = false ] && filtered+=("$d")
+        done
+        result=("${filtered[@]}")
+    fi
+
+    echo "${result[*]}"
+}
+
+show_help() {
+    cat << EOF
+telman - bspwm session manager
+
+Usage:
+    telman save <name> [desktops...]  Save desktop layout
+    telman list                       List saved sessions
+    telman restore <name> [name...]   Restore one or more sessions
+    telman show <name>                Show session details
+    telman delete <name>              Delete a saved session
+    telman help                       Show this help
+
+Desktop filter (1-10, prefix ! to exclude):
+    telman save work           # Save all desktops
+    telman save work 2         # Save only desktop II
+    telman save work 1 2       # Save desktops I and II
+    telman save work !2 !5     # Save all except II and V
+
+When saving specific desktops to an existing session, only those
+desktops are updated — the rest (including manual 'command' fields)
+are preserved.
+
+Sessions are stored in: $SESSIONS_DIR
+
+Restore supports desktop override (1-10 after session name):
+    telman restore lyre 5          # Restore lyre on desktop V
+    telman restore lyre 5 web      # lyre on V, web on its saved desktops
+    telman restore lyre 5 web 8    # lyre on V, web on VIII
+
+Examples:
+    telman save work         # Save current layout as "work"
+    telman list              # See all saved sessions
+    telman restore work      # Restore the "work" layout
+    telman restore work lyre # Restore both sessions
+    telman show work         # Preview what "work" contains
+EOF
+}
+
+ensure_sessions_dir() {
+    mkdir -p "$SESSIONS_DIR"
+}
+
+# ---------------------------------------------------------------------------
+# SAVE
+# ---------------------------------------------------------------------------
+
+get_window_info() {
+    local wid="$1"
+    local desktop class pid cwd cmdline title
+
+    desktop=$(bspc query -D -n "$wid" --names 2>/dev/null || echo "unknown")
+    class=$(xprop -id "$wid" WM_CLASS 2>/dev/null | sed 's/.*= //' | tr -d '"' || echo "")
+    pid=$(xprop -id "$wid" _NET_WM_PID 2>/dev/null | awk '{print $3}')
+    title=$(xprop -id "$wid" _NET_WM_NAME 2>/dev/null | sed 's/.*= "//;s/"$//' || echo "")
+
+    cwd=""
+    cmdline=""
+    if [[ "$pid" =~ ^[0-9]+$ ]] && [ -d "/proc/$pid" ]; then
+        cmdline=$(tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null || echo "")
+        # For terminals, read CWD from the child shell, not the terminal itself
+        local shell_pid
+        shell_pid=$(pgrep -P "$pid" 2>/dev/null | head -1)
+        if [ -n "$shell_pid" ]; then
+            cwd=$(readlink -f "/proc/$shell_pid/cwd" 2>/dev/null || echo "")
+        else
+            cwd=$(readlink -f "/proc/$pid/cwd" 2>/dev/null || echo "")
+        fi
+    fi
+
+    # Derive launch command from class/cmdline
+    local launch_cmd=""
+    local launch_args=""
+    local instance
+    instance=$(echo "$class" | cut -d',' -f1 | xargs)
+
+    case "$instance" in
+        code|Code)
+            # Extract workspace folder from title: "file - workspace - Visual Studio Code"
+            local workspace_name
+            workspace_name=$(echo "$title" | sed -n 's/.* - \(.*\) - Visual Studio Code$/\1/p')
+            if [ -n "$workspace_name" ]; then
+                # Try to find the actual path
+                local workspace_path
+                workspace_path=$(find "$HOME/playground" "$HOME/devel" -maxdepth 2 -type d -name "$workspace_name" 2>/dev/null | head -1)
+                if [ -n "$workspace_path" ]; then
+                    launch_cmd="code"
+                    launch_args="$workspace_path"
+                else
+                    launch_cmd="code"
+                    launch_args=""
+                fi
+            else
+                launch_cmd="code"
+                launch_args=""
+            fi
+            ;;
+        Navigator|firefox)
+            launch_cmd="firefox"
+            # Extract profile flag
+            local profile_flag
+            profile_flag=$(echo "$cmdline" | grep -oP '\-P\s+\S+' || echo "")
+            launch_args="$profile_flag"
+            ;;
+        urxvt|URxvt)
+            launch_cmd="urxvt"
+            if [ -n "$cwd" ] && [ "$cwd" != "$HOME" ]; then
+                launch_args="-cd $cwd"
+            fi
+            ;;
+        telegram-desktop|TelegramDesktop)
+            launch_cmd="telegram-desktop"
+            ;;
+        element|Element)
+            launch_cmd="element-desktop"
+            ;;
+        *)
+            # Generic: try lowercase instance name
+            launch_cmd=$(echo "$instance" | tr '[:upper:]' '[:lower:]')
+            ;;
+    esac
+
+    jq -n \
+        --arg desktop "$desktop" \
+        --arg class "$class" \
+        --arg title "$title" \
+        --arg cwd "$cwd" \
+        --arg launch_cmd "$launch_cmd" \
+        --arg launch_args "$launch_args" \
+        '{desktop: $desktop, class: $class, title: $title, cwd: $cwd, launch_cmd: $launch_cmd, launch_args: $launch_args}'
+}
+
+extract_tree_structure() {
+    # Recursively extract only the structural info (split types, ratios) from bspc tree
+    # Strips window IDs but keeps the shape
+    python3 << 'PYEOF'
+import json, sys, subprocess
+
+def simplify_node(node):
+    """Extract tree structure: splits, ratios, and leaf class names."""
+    if node is None:
+        return None
+
+    result = {
+        "splitType": node.get("splitType", "vertical"),
+        "splitRatio": node.get("splitRatio", 0.5),
+    }
+
+    client = node.get("client")
+    first = node.get("firstChild")
+    second = node.get("secondChild")
+
+    if client is not None:
+        # Leaf node
+        result["leaf"] = True
+        result["className"] = client.get("className", "")
+        result["instanceName"] = client.get("instanceName", "")
+        result["state"] = client.get("state", "tiled")
+    else:
+        # Internal node
+        result["leaf"] = False
+        result["firstChild"] = simplify_node(first)
+        result["secondChild"] = simplify_node(second)
+
+    return result
+
+tree = json.loads(subprocess.check_output(["bspc", "query", "-T", "-m"]))
+desktops = {}
+for d in tree.get("desktops", []):
+    name = d["name"]
+    root = d.get("root")
+    if root is not None:
+        desktops[name] = {
+            "layout": d.get("layout", "tiled"),
+            "tree": simplify_node(root),
+        }
+
+json.dump(desktops, sys.stdout, indent=2)
+PYEOF
+}
+
+do_save() {
+    local name="$1"
+    shift
+    local desktop_filter
+    desktop_filter=$(resolve_desktops "$@")
+
+    ensure_sessions_dir
+    local session_file="$SESSIONS_DIR/${name}.json"
+
+    if [ -n "$desktop_filter" ]; then
+        log_info "Filtering desktops: ${CYAN}${desktop_filter}${NC}"
+    elif [ -f "$session_file" ]; then
+        log_warn "Session ${CYAN}${name}${NC} already exists. Overwrite? [Y/n] "
+        read -r reply < /dev/tty
+        if [[ "$reply" =~ ^[nN]$ ]]; then
+            log_info "Aborted."
+            return 0
+        fi
+    fi
+
+    log_info "Capturing windows..."
+
+    # Collect window info (filtered if needed)
+    local windows="[]"
+    for wid in $(bspc query -N -n .window 2>/dev/null); do
+        local info
+        info=$(get_window_info "$wid")
+
+        if [ -n "$desktop_filter" ]; then
+            local win_desktop
+            win_desktop=$(echo "$info" | jq -r '.desktop')
+            local matched=false
+            for d in $desktop_filter; do
+                [ "$d" = "$win_desktop" ] && matched=true
+            done
+            [ "$matched" = false ] && continue
+        fi
+
+        windows=$(echo "$windows" | jq --argjson w "$info" '. + [$w]')
+    done
+
+    log_info "Capturing tree structure..."
+    local tree
+    tree=$(extract_tree_structure)
+
+    # Filter tree to only requested desktops
+    if [ -n "$desktop_filter" ]; then
+        local filtered_tree="{}"
+        for d in $desktop_filter; do
+            local desk_data
+            desk_data=$(echo "$tree" | jq --arg d "$d" '.[$d] // empty')
+            if [ -n "$desk_data" ]; then
+                filtered_tree=$(echo "$filtered_tree" | jq --arg d "$d" --argjson v "$desk_data" '.[$d] = $v')
+            fi
+        done
+        tree="$filtered_tree"
+    fi
+
+    # Merge with existing session if filtering specific desktops
+    if [ -n "$desktop_filter" ] && [ -f "$session_file" ]; then
+        log_info "Merging with existing session..."
+
+        # Build jq filter for desktop names to replace
+        local desktop_list_json
+        desktop_list_json=$(printf '%s\n' $desktop_filter | jq -R . | jq -s .)
+
+        local existing
+        existing=$(cat "$session_file")
+
+        # Remove old windows for filtered desktops, add new ones
+        local merged_windows
+        merged_windows=$(echo "$existing" | jq --argjson filter "$desktop_list_json" --argjson new "$windows" \
+            '[.windows[] | select(.desktop as $d | $filter | index($d) | not)] + $new')
+
+        # Merge tree: update filtered desktops, keep rest
+        local merged_tree
+        merged_tree=$(echo "$existing" | jq --argjson new "$tree" \
+            '.tree * $new')
+
+        jq -n \
+            --arg name "$name" \
+            --arg date "$(date -Iseconds)" \
+            --arg monitor "$(bspc query -M -m --names)" \
+            --argjson windows "$merged_windows" \
+            --argjson tree "$merged_tree" \
+            '{name: $name, saved_at: $date, monitor: $monitor, windows: $windows, tree: $tree}' \
+            > "$session_file"
+    else
+        jq -n \
+            --arg name "$name" \
+            --arg date "$(date -Iseconds)" \
+            --arg monitor "$(bspc query -M -m --names)" \
+            --argjson windows "$windows" \
+            --argjson tree "$tree" \
+            '{name: $name, saved_at: $date, monitor: $monitor, windows: $windows, tree: $tree}' \
+            > "$session_file"
+    fi
+
+    log_info "Session saved: ${CYAN}${name}${NC}"
+    log_info "File: $session_file"
+    echo ""
+    do_show "$name"
+}
+
+# ---------------------------------------------------------------------------
+# LIST
+# ---------------------------------------------------------------------------
+
+do_list() {
+    ensure_sessions_dir
+
+    local files
+    files=$(find "$SESSIONS_DIR" -name "*.json" -type f 2>/dev/null | sort)
+
+    if [ -z "$files" ]; then
+        log_warn "No saved sessions found."
+        echo "  Use 'telman save <name>' to save your current layout."
+        return
+    fi
+
+    echo -e "${GREEN}Saved sessions:${NC}"
+    echo ""
+
+    while IFS= read -r f; do
+        local name date window_count desktops_used
+        name=$(jq -r '.name' "$f")
+        date=$(jq -r '.saved_at' "$f" | cut -dT -f1)
+        window_count=$(jq '.windows | length' "$f")
+        desktops_used=$(jq -r '[.windows[].desktop] | unique | join(", ")' "$f")
+
+        printf "  ${CYAN}%-16s${NC} ${DIM}%s${NC}  %d windows on desktops [%s]\n" \
+            "$name" "$date" "$window_count" "$desktops_used"
+    done <<< "$files"
+    echo ""
+}
+
+# ---------------------------------------------------------------------------
+# SHOW
+# ---------------------------------------------------------------------------
+
+do_show() {
+    local name="$1"
+    local session_file="$SESSIONS_DIR/${name}.json"
+
+    if [ ! -f "$session_file" ]; then
+        log_error "Session not found: $name"
+        return 1
+    fi
+
+    local date
+    date=$(jq -r '.saved_at' "$session_file" | cut -dT -f1,1)
+
+    echo -e "${CYAN}Session: ${name}${NC}  ${DIM}(saved ${date})${NC}"
+    echo ""
+
+    jq -r '.windows | group_by(.desktop) | .[] |
+        "  Desktop \(.[0].desktop):" ,
+        (.[] | "    \(.launch_cmd)\(if .launch_args != "" then " " + .launch_args else "" end)")' \
+        "$session_file"
+    echo ""
+}
+
+# ---------------------------------------------------------------------------
+# RESTORE
+# ---------------------------------------------------------------------------
+
+wait_for_window() {
+    local class_match="$1"
+    local timeout="${2:-10}"
+    local count=0
+
+    while [ $count -lt $((timeout * 10)) ]; do
+        local wid
+        wid=$(bspc query -N -n .window -d focused 2>/dev/null | head -1)
+        if [ -n "$wid" ]; then
+            local current_class
+            current_class=$(xprop -id "$wid" WM_CLASS 2>/dev/null | sed 's/.*= //' || echo "")
+            if echo "$current_class" | grep -qi "$class_match"; then
+                echo "$wid"
+                return 0
+            fi
+        fi
+        sleep 0.1
+        count=$((count + 1))
+    done
+    return 1
+}
+
+apply_tree_layout() {
+    # After all windows are placed, fix split types and ratios to match saved layout
+    # $1: session file, $2: optional desktop mapping "SAVED:LIVE" (e.g. "II:V")
+    local session_file="$1"
+    local desktop_mapping="${2:-}"
+
+    python3 - "$session_file" "$desktop_mapping" << 'PYEOF'
+import json, subprocess, sys
+
+def get_current_tree(desktop_name):
+    try:
+        result = subprocess.check_output(
+            ["bspc", "query", "-T", "-d", desktop_name],
+            stderr=subprocess.DEVNULL
+        )
+        return json.loads(result)
+    except Exception:
+        return None
+
+def collect_fixes(current_node, saved_node, fixes):
+    """Walk both trees to collect (node_id, desired_split, desired_ratio)."""
+    if current_node is None or saved_node is None:
+        return
+    if saved_node.get("leaf", False):
+        return
+
+    node_id = current_node.get("id")
+    if not node_id or current_node.get("client"):
+        return
+
+    fixes.append((
+        node_id,
+        saved_node.get("splitType", "vertical"),
+        saved_node.get("splitRatio", 0.5),
+    ))
+
+    if current_node.get("firstChild") and saved_node.get("firstChild"):
+        collect_fixes(current_node["firstChild"], saved_node["firstChild"], fixes)
+    if current_node.get("secondChild") and saved_node.get("secondChild"):
+        collect_fixes(current_node["secondChild"], saved_node["secondChild"], fixes)
+
+def apply_fixes(fixes):
+    """Apply split types and ratios, re-reading live state before each fix.
+
+    bspc node -R 90 rotates an entire subtree, so a parent rotation
+    flips descendant split types too.  By re-querying each node's live
+    state we see the cumulative effect of prior rotations and only
+    rotate when truly needed.
+    """
+    for node_id, desired_split, desired_ratio in fixes:
+        try:
+            live = json.loads(subprocess.check_output(
+                ["bspc", "query", "-T", "-n", str(node_id)],
+                stderr=subprocess.DEVNULL,
+            ))
+        except Exception:
+            continue
+
+        current_split = live.get("splitType", "vertical")
+        if current_split != desired_split:
+            subprocess.run(
+                ["bspc", "node", str(node_id), "-R", "90"],
+                stderr=subprocess.DEVNULL,
+            )
+
+        subprocess.run(
+            ["bspc", "node", str(node_id), "-r", str(desired_ratio)],
+            stderr=subprocess.DEVNULL,
+        )
+
+session_file = sys.argv[1]
+desktop_mapping_str = sys.argv[2] if len(sys.argv) > 2 else ""
+
+# Parse desktop mapping (e.g. "II:V" means saved desktop II → live desktop V)
+desk_map = {}
+if desktop_mapping_str:
+    for pair in desktop_mapping_str.split(","):
+        if ":" in pair:
+            src, dst = pair.split(":", 1)
+            desk_map[src] = dst
+
+with open(session_file) as f:
+    session = json.load(f)
+
+saved_tree = session.get("tree", {})
+
+all_fixes = []
+for desktop_name, desk_info in saved_tree.items():
+    live_desktop = desk_map.get(desktop_name, desktop_name)
+    current = get_current_tree(live_desktop)
+    if current and current.get("root"):
+        saved = desk_info.get("tree")
+        if saved:
+            collect_fixes(current["root"], saved, all_fixes)
+
+apply_fixes(all_fixes)
+
+PYEOF
+}
+
+do_restore() {
+    # Parse args into (session_file, override_desktop) pairs
+    # Numbers 1-10 after a session name override that session's desktop
+    local -a restore_files=()
+    local -a restore_overrides=()
+    local last_index=-1
+
+    for arg in "$@"; do
+        if [[ "$arg" =~ ^[0-9]+$ ]] && [ "$arg" -ge 1 ] && [ "$arg" -le 10 ] && [ $last_index -ge 0 ]; then
+            restore_overrides[$last_index]=$(to_roman "$arg")
+        else
+            local session_file="$SESSIONS_DIR/${arg}.json"
+            if [ ! -f "$session_file" ]; then
+                log_warn "Session not found, skipping: ${CYAN}${arg}${NC}"
+            else
+                restore_files+=("$session_file")
+                restore_overrides+=("")
+                last_index=$((${#restore_files[@]} - 1))
+                do_show "$arg"
+            fi
+        fi
+    done
+
+    if [ ${#restore_files[@]} -eq 0 ]; then
+        log_error "No valid sessions to restore."
+        do_list
+        return 1
+    fi
+
+    # Track multi-window app dedup across all sessions
+    declare -A launched_apps
+
+    for idx in "${!restore_files[@]}"; do
+        local session_file="${restore_files[$idx]}"
+        local override="${restore_overrides[$idx]}"
+        local name
+        name=$(jq -r '.name' "$session_file")
+
+        # Validate desktop override for multi-desktop sessions
+        local desktop_mapping=""
+        if [ -n "$override" ]; then
+            local unique_desktops
+            unique_desktops=$(jq -r '[.windows[].desktop] | unique | length' "$session_file")
+            if [ "$unique_desktops" -gt 1 ]; then
+                log_warn "Session ${CYAN}${name}${NC} spans $unique_desktops desktops — ignoring desktop override"
+                override=""
+            else
+                local saved_desktop
+                saved_desktop=$(jq -r '[.windows[].desktop] | unique | .[0]' "$session_file")
+                desktop_mapping="${saved_desktop}:${override}"
+                log_info "Restoring session: ${CYAN}${name}${NC} → desktop ${CYAN}${override}${NC}"
+            fi
+        fi
+
+        if [ -z "$override" ]; then
+            log_info "Restoring session: ${CYAN}${name}${NC}"
+        fi
+
+        local desktops
+        desktops=$(jq -r '[.windows[].desktop] | unique | .[]' "$session_file")
+
+        for desktop in $desktops; do
+            local target_desktop="${override:-$desktop}"
+            log_info "Setting up desktop ${CYAN}${target_desktop}${NC}..."
+
+            # Get window indices sorted: slow apps (code, firefox) first, then fast (urxvt, etc)
+            # This ensures slow apps claim the firstChild tree position before fast ones
+            local window_count
+            window_count=$(jq "[.windows[] | select(.desktop == \"$desktop\")] | length" "$session_file")
+
+            local -a slow_indices=() fast_indices=()
+            local i=0
+            while [ $i -lt "$window_count" ]; do
+                local cmd
+                cmd=$(jq -r "[.windows[] | select(.desktop == \"$desktop\")][$i].launch_cmd" "$session_file")
+                case "$cmd" in
+                    code|firefox) slow_indices+=("$i") ;;
+                    *) fast_indices+=("$i") ;;
+                esac
+                i=$((i + 1))
+            done
+
+            local -a ordered_indices=("${slow_indices[@]}" "${fast_indices[@]}")
+
+            for i in "${ordered_indices[@]}"; do
+                local launch_cmd launch_args class_name command
+                launch_cmd=$(jq -r "[.windows[] | select(.desktop == \"$desktop\")][$i].launch_cmd" "$session_file")
+                launch_args=$(jq -r "[.windows[] | select(.desktop == \"$desktop\")][$i].launch_args // \"\"" "$session_file")
+                class_name=$(jq -r "[.windows[] | select(.desktop == \"$desktop\")][$i].class" "$session_file" | cut -d',' -f2 | xargs)
+                command=$(jq -r "[.windows[] | select(.desktop == \"$desktop\")][$i].command // \"\"" "$session_file")
+
+                local rule_class="$class_name"
+
+                local multi_window=false
+                case "$launch_cmd" in
+                    code|firefox) multi_window=true ;;
+                esac
+
+                if [ "$multi_window" = true ]; then
+                    local app_key="${launch_cmd}|${launch_args}"
+                    if [ "${launched_apps[$app_key]:-}" = "1" ]; then
+                        log_info "  Skipping duplicate: $launch_cmd $launch_args (already launched)"
+                        continue
+                    fi
+                    launched_apps["$app_key"]="1"
+                fi
+
+                # Count windows on target desktop before launch
+                local before_count
+                before_count=$({ bspc query -N -n .window -d "$target_desktop" 2>/dev/null || true; } | wc -l)
+
+                bspc rule -a "$rule_class" -o desktop="$target_desktop" 2>/dev/null || true
+
+                log_info "  Launching: ${launch_cmd} ${launch_args}"
+
+                case "$launch_cmd" in
+                    code)
+                        if [ -n "$launch_args" ]; then
+                            code "$launch_args" &
+                        else
+                            code &
+                        fi
+                        ;;
+                    firefox)
+                        # shellcheck disable=SC2086
+                        firefox $launch_args &
+                        ;;
+                    urxvt)
+                        if [ -n "$command" ]; then
+                            # shellcheck disable=SC2086
+                            urxvt $launch_args -e zsh -ic "$command; exec zsh" &
+                        elif [ -n "$launch_args" ]; then
+                            # shellcheck disable=SC2086
+                            urxvt $launch_args &
+                        else
+                            urxvt &
+                        fi
+                        ;;
+                    *)
+                        # shellcheck disable=SC2086
+                        $launch_cmd $launch_args &
+                        ;;
+                esac
+
+                # Wait for the window to actually appear on the target desktop
+                # before launching the next one (preserves tree insertion order)
+                local waited=0
+                while [ $waited -lt 50 ]; do
+                    local after_count
+                    after_count=$({ bspc query -N -n .window -d "$target_desktop" 2>/dev/null || true; } | wc -l)
+                    if [ "$after_count" -gt "$before_count" ]; then
+                        break
+                    fi
+                    sleep 0.1
+                    waited=$((waited + 1))
+                done
+
+                if [ $waited -ge 50 ]; then
+                    log_warn "  Timed out waiting for window on desktop ${target_desktop}"
+                fi
+            done
+        done
+
+        # Store mapping for tree layout phase
+        restore_overrides[$idx]="$desktop_mapping"
+    done
+
+    log_info "Waiting for windows to settle..."
+    sleep 3
+
+    # Apply tree layout for all restored sessions
+    for idx in "${!restore_files[@]}"; do
+        local session_file="${restore_files[$idx]}"
+        local mapping="${restore_overrides[$idx]}"
+        log_info "Adjusting layout for: ${CYAN}$(jq -r '.name' "$session_file")${NC}"
+        apply_tree_layout "$session_file" "$mapping"
+    done
+
+    log_info "Restore complete."
+}
+
+# ---------------------------------------------------------------------------
+# DELETE
+# ---------------------------------------------------------------------------
+
+do_delete() {
+    local name="$1"
+    local session_file="$SESSIONS_DIR/${name}.json"
+
+    if [ ! -f "$session_file" ]; then
+        log_error "Session not found: $name"
+        return 1
+    fi
+
+    rm "$session_file"
+    log_info "Deleted session: ${CYAN}${name}${NC}"
+}
+
+# ---------------------------------------------------------------------------
+# MAIN
+# ---------------------------------------------------------------------------
+
+main() {
+    local cmd="${1:-help}"
+
+    case "$cmd" in
+        save)
+            [ -z "${2:-}" ] && { log_error "Usage: telman save <name> [desktops...]"; exit 1; }
+            do_save "${@:2}"
+            ;;
+        list|ls)
+            do_list
+            ;;
+        show|info)
+            [ -z "${2:-}" ] && { log_error "Usage: telman show <name>"; exit 1; }
+            do_show "$2"
+            ;;
+        restore|load)
+            [ -z "${2:-}" ] && { log_error "Usage: telman restore <name> [name...]"; exit 1; }
+            do_restore "${@:2}"
+            ;;
+        delete|rm)
+            [ -z "${2:-}" ] && { log_error "Usage: telman delete <name>"; exit 1; }
+            do_delete "$2"
+            ;;
+        help|--help|-h)
+            show_help
+            ;;
+        *)
+            log_error "Unknown command: $cmd"
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

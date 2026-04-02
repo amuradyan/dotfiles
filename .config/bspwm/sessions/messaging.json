@@ -1,0 +1,49 @@
+{
+  "name": "messaging",
+  "saved_at": "2026-03-18T19:09:47+04:00",
+  "monitor": "eDP-1-1",
+  "windows": [
+    {
+      "desktop": "X",
+      "class": "element, Element",
+      "title": "Element [1] | Fob Hovhannisyan",
+      "cwd": "/home/spectrum",
+      "launch_cmd": "element-desktop",
+      "launch_args": ""
+    },
+    {
+      "desktop": "X",
+      "class": "telegram-desktop, TelegramDesktop",
+      "title": "Telegram",
+      "cwd": "/home/spectrum/.local/share/TelegramDesktop",
+      "launch_cmd": "telegram-desktop",
+      "launch_args": ""
+    }
+  ],
+  "tree": {
+    "X": {
+      "layout": "tiled",
+      "tree": {
+        "splitType": "vertical",
+        "splitRatio": 0.5,
+        "leaf": false,
+        "firstChild": {
+          "splitType": "vertical",
+          "splitRatio": 0.5,
+          "leaf": true,
+          "className": "Element",
+          "instanceName": "element",
+          "state": "tiled"
+        },
+        "secondChild": {
+          "splitType": "vertical",
+          "splitRatio": 0.5,
+          "leaf": true,
+          "className": "TelegramDesktop",
+          "instanceName": "telegram-desktop",
+          "state": "tiled"
+        }
+      }
+    }
+  }
+}

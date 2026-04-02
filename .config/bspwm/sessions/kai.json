@@ -1,0 +1,70 @@
+{
+  "name": "kai",
+  "saved_at": "2026-03-18T23:58:55+04:00",
+  "monitor": "eDP-1-1",
+  "windows": [
+    {
+      "desktop": "I",
+      "class": "code, Code",
+      "title": "generated_binary.raw - kai - Visual Studio Code",
+      "cwd": "/home/spectrum",
+      "launch_cmd": "code",
+      "launch_args": "/home/spectrum/playground/kai"
+    },
+    {
+      "desktop": "I",
+      "class": "urxvt, URxvt",
+      "title": "zsh",
+      "cwd": "/home/spectrum/playground/kai",
+      "launch_cmd": "urxvt",
+      "launch_args": "-cd /home/spectrum/playground/kai"
+    },
+    {
+      "desktop": "I",
+      "class": "urxvt, URxvt",
+      "title": "zsh",
+      "cwd": "/home/spectrum/playground/kai",
+      "launch_cmd": "urxvt",
+      "launch_args": "-cd /home/spectrum/playground/kai"
+    }
+  ],
+  "tree": {
+    "I": {
+      "layout": "tiled",
+      "tree": {
+        "splitType": "vertical",
+        "splitRatio": 0.813316,
+        "leaf": false,
+        "firstChild": {
+          "splitType": "vertical",
+          "splitRatio": 0.307322,
+          "leaf": true,
+          "className": "Code",
+          "instanceName": "code",
+          "state": "tiled"
+        },
+        "secondChild": {
+          "splitType": "horizontal",
+          "splitRatio": 0.5,
+          "leaf": false,
+          "firstChild": {
+            "splitType": "vertical",
+            "splitRatio": 0.0,
+            "leaf": true,
+            "className": "URxvt",
+            "instanceName": "urxvt",
+            "state": "tiled"
+          },
+          "secondChild": {
+            "splitType": "vertical",
+            "splitRatio": 0.0,
+            "leaf": true,
+            "className": "URxvt",
+            "instanceName": "urxvt",
+            "state": "tiled"
+          }
+        }
+      }
+    }
+  }
+}

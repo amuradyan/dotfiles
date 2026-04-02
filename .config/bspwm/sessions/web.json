@@ -1,0 +1,49 @@
+{
+  "name": "web",
+  "saved_at": "2026-03-18T19:09:32+04:00",
+  "monitor": "eDP-1-1",
+  "windows": [
+    {
+      "desktop": "V",
+      "class": "Navigator, firefox",
+      "title": "Restore Session — Mozilla Firefox",
+      "cwd": "/home/spectrum",
+      "launch_cmd": "firefox",
+      "launch_args": "-P QTLab"
+    },
+    {
+      "desktop": "V",
+      "class": "Navigator, firefox",
+      "title": "Restore Session — Mozilla Firefox",
+      "cwd": "/home/spectrum",
+      "launch_cmd": "firefox",
+      "launch_args": ""
+    }
+  ],
+  "tree": {
+    "V": {
+      "layout": "tiled",
+      "tree": {
+        "splitType": "vertical",
+        "splitRatio": 0.5,
+        "leaf": false,
+        "firstChild": {
+          "splitType": "vertical",
+          "splitRatio": 0.5,
+          "leaf": true,
+          "className": "firefox",
+          "instanceName": "Navigator",
+          "state": "tiled"
+        },
+        "secondChild": {
+          "splitType": "vertical",
+          "splitRatio": 0.5,
+          "leaf": true,
+          "className": "firefox",
+          "instanceName": "Navigator",
+          "state": "tiled"
+        }
+      }
+    }
+  }
+}
