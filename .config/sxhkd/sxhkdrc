@@ -3,42 +3,54 @@
 #
 
 super + XF86WakeUp
-	~/devel/lock_screen.sh
+	~/.config/custom_scripts/lock_screen.sh
 
 super + alt + XF86WakeUp
-	~/devel/logout.sh
+	~/.config/custom_scripts/logout.sh
 
 # terminal emulator
 super + Return
-	urxvt -e /usr/bin/zsh
+	urxvt -e `which zsh`
 
 # program launcher
 super + @space
-	rofi -show run
+	PATH="$HOME/.config/custom_scripts:$PATH" rofi -show run
 
 # make sxhkd reload its configuration files:
 super + Escape
 	pkill -USR1 -x sxhkd
+
+# toggle polybar visibility
+super + b
+	polybar-msg cmd toggle
 
 #
 # languages
 #
 
 shift + {Shift_L,Shift_R}
-	~/devel/keyboard_switcher.sh
+	~/.config/custom_scripts/keyboard_switcher.sh
 
 #
 # alsa
 #
 
 @XF86AudioRaiseVolume
-	amixer set Speaker 10%+
+	amixer set Master 10%+
 
 @XF86AudioLowerVolume
-	amixer set Speaker 10%-
+	amixer set Master 10%-
 
 @XF86AudioMute
 	amixer set Master toggle
+
+
+@XF86MonBrightnessUp
+    ~/.config/custom_scripts/brightness.sh inc 0.05
+
+@XF86MonBrightnessDown
+    ~/.config/custom_scripts/brightness.sh dec 0.05
+
 
 #
 # bspwm hotkeys
