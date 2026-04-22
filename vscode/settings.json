@@ -1,176 +1,128 @@
 {
-    "editor.fontLigatures": true,
-    "editor.fontFamily": "Px437 IBM ISO9",
-    "workbench.iconTheme": "vscode-icons",
-    "terminal.integrated.shell.linux": "/bin/zsh",
+    "workbench.colorTheme": "Dark Doug",
+    "explorer.confirmDelete": false,
+    "editor.stickyScroll.scrollWithEditor": false,
     "zenMode.centerLayout": false,
     "zenMode.hideLineNumbers": false,
-    "[json]": {
-        "editor.defaultFormatter": "HookyQR.beautify"
-    },
-    "[javascript]": {
-        "editor.defaultFormatter": "HookyQR.beautify"
-    },
-    "solidity.compileUsingRemoteVersion": "latest",
-    "solidity.linter": "solium",
-    "solidity.soliumRules": {
-        "imports-on-top": 0,
-        "variable-declarations": 0,
-        "indentation": [
-            "error",
-            4
-        ]
-    },
-    "jshint.options": {
-        "esversion": 8,
-        "unused": "strict",
-        "asi": true,
-        "curly": true,
-        "eqeqeq": true,
-        "latedef": true,
-        "varstmt": true
-    },
-    "[jsonc]": {
-        "editor.defaultFormatter": "HookyQR.beautify"
-    },
-    "javascript.updateImportsOnFileMove.enabled": "always",
-    "[javascriptreact]": {
-        "editor.defaultFormatter": "vscode.typescript-language-features"
-    },
-    "editor.suggestSelection": "first",
-    "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
-    "vsicons.dontShowNewVersionMessage": true,
-    "explorer.openEditors.visible": 0,
-    "files.exclude": {
-        "**/.class": true,
-        "**/.classpath": true,
-        "**/.factorypath": true,
-        "**/.project": true,
-        "**/.settings": true
-    },
-    "[html]": {
-        "editor.defaultFormatter": "HookyQR.beautify"
-    },
-    "editor.tabSize": 2,
-    "C_Cpp.updateChannel": "Insiders",
-    "explorer.confirmDragAndDrop": false,
-    "java.errors.incompleteClasspath.severity": "ignore",
-    "gitlens.views.repositories.location": "gitlens",
-    "gitlens.views.fileHistory.location": "gitlens",
-    "gitlens.views.lineHistory.location": "gitlens",
-    "gitlens.views.compare.location": "gitlens",
-    "gitlens.views.search.location": "gitlens",
-    "quarkus.tools.alwaysShowWelcomePage": false,
-    "workbench.startupEditor": "newUntitledFile",
-    "dotty.trace.machineId": "834cec14-382a-4e2c-ab28-a67a95283f40",
-    "debug.console.fontSize": 12,
-    "vsonline.authentication.accountProvider": "Microsoft",
-    "terminal.integrated.shell.windows": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-    "explorer.confirmDelete": false,
-    "java.semanticHighlighting.enabled": true,
-    "vsonline.accountProvider": "Microsoft",
-    "debug.console.fontFamily": "Px437 IBM ISO9",
-    "cucumberautocomplete.onTypeFormat": true,
     "zenMode.hideStatusBar": false,
-    "codespaces.accountProvider": "Microsoft",
-    "editor.unusualLineTerminators": "off",
-    "python.languageServer": "Microsoft",
-    "java.imports.gradle.wrapper.checksums": [
-        {
-            "sha256": "50726ef76b6599d458dd37169a6b42d86d3790c83f6065a398e3e672448d18c6",
-            "allowed": true
-        }
-    ],
-    "java.requirements.JDK11Warning": false,
-    "metals.serverVersion": "0.10.5",
-    "cSpell.userWords": [
-        "Aramayis",
-        "Autofilled",
-        "BROWSERSTACK",
-        "Conz",
-        "DDMMYYYY",
-        "Eether",
-        "Keebio",
-        "Levinson",
-        "Lizt",
-        "Nito",
-        "Numpad",
-        "Nyquist",
-        "PCBs",
-        "Qibord",
-        "SIGNIN",
-        "Sativex",
-        "Schedulings",
-        "Signup",
-        "Steyt",
-        "fpinscala",
-        "gabp",
-        "geocoder",
-        "handside",
-        "ints",
-        "lastname",
-        "maus",
-        "nonets",
-        "ortholinear",
-        "runspider",
-        "scalatest",
-        "scrapy",
-        "spacebar",
-        "stringification",
-        "suml",
-        "sumr",
-        "thead",
-        "unshifted"
-    ],
+    "github.copilot.enable": {
+        "*": false,
+        "plaintext": true,
+        "markdown": true,
+        "scminput": false,
+        "scala": true,
+        "javascript": true,
+        "typescriptreact": true,
+        "clojure": false,
+        "python": false,
+        "typescript": true,
+        "jsonc": true
+    },
+    "editor.minimap.autohide": "mouseover",
+    "editor.minimap.enabled": false,
+    "zenMode.showTabs": "none",
     "files.watcherExclude": {
         "**/.bloop": true,
         "**/.metals": true,
         "**/.ammonite": true
     },
-    "metals.bloopVersion": "1.4.8",
-    "java.project.importOnFirstTimeStartup": "automatic",
-    "java.configuration.runtimes": [
-        {
-            "name": "JavaSE-12",
-            "path": "C:\\Program Files\\Java\\jdk-12.0.1"
-        },
-        {
-            "name": "JavaSE-14",
-            "path": "D:\\devel\\java\\jdk-14.0.1"
-        }
-    ],
-    "githubPullRequests.remotes": [
-        "origin"
-    ],
-    "java.home": "C:\\Program Files\\Java\\jdk-12.0.1",
-    "java.import.gradle.home": "C:\\Program Files\\Java\\jdk-12.0.1",
-    "[java]": {
-        "editor.defaultFormatter": "redhat.java"
+    "workbench.tree.enableStickyScroll": false,
+    "editor.stickyScroll.maxLineCount": 1,
+    "editor.stickyScroll.enabled": false,
+    "files.trimTrailingWhitespace": true,
+    "files.trimFinalNewlines": true,
+    "[typescript]": {
+        "editor.defaultFormatter": "denoland.vscode-deno"
     },
-    "[xml]": {
-        "editor.defaultFormatter": "redhat.vscode-xml"
+    "workbench.startupEditor": "none",
+    "editor.bracketPairColorization.enabled": false,
+    "calva.highlight.cycleBracketColors": false,
+    "calva.highlight.enableBracketColors": false,
+    "[html]": {
+        "editor.defaultFormatter": "vscode.html-language-features"
     },
-    "workbench.editor.untitled.hint": "hidden",
-    "editor.minimap.enabled": false,
-    "java.saveActions.organizeImports": true,
-    "java.completion.filteredTypes": [
-        "java.awt.*",
-        "com.sun.*",
-        "sun.*"
-    ],
-    "java.completion.importOrder": [
-        "",
-        "javax",
-        "java",
-        "#"
-    ],
-    "security.workspace.trust.untrustedFiles": "open",
-    "editor.inlineSuggest.enabled": true,
-    "github.copilot.enable": {
-        "*": true,
-        "yaml": false,
-        "plaintext": true,
-        "markdown": true
+    "window.menuBarVisibility": "compact",
+    "editor.lineNumbers": "relative",
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
     },
-    "window.zoomLevel": -1
+    "window.zoomLevel": -1,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "calva.paredit.defaultKeyMap": "strict",
+    "editor.hover.delay": 600,
+    "[javascript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "editor.formatOnSave": true,
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "ms-vsliveshare.vsliveshare"
+    },
+    "editor.tabSize": 2,
+    "calva.prettyPrintingOptions": {
+        "printEngine": "pprint",
+        "enabled": false,
+        "width": 120,
+        "maxLength": 50
+    },
+    "window.commandCenter": false,
+    "workbench.layoutControl.enabled": false,
+    "cSpell.userWords": [
+        "Andranik",
+        "Muradyan",
+        "noperator",
+        "oneline",
+        "stackable"
+    ],
+    "files.insertFinalNewline": true,
+    "[markdown]": {
+        "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+    },
+    "github.copilot.nextEditSuggestions.enabled": false,
+    "files.associations": {
+        "*.shvi": "lisp"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "denoland.vscode-deno"
+    },
+    "git.blame.editorDecoration.enabled": true,
+    "chat.mcp.discovery.enabled": {
+        "claude-desktop": true,
+        "windsurf": true,
+        "cursor-global": true,
+        "cursor-workspace": true
+    },
+    "accessibility.voice.speechLanguage": "en-US",
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "git.blame.statusBarItem.enabled": false,
+    "explorer.confirmDragAndDrop": false,
+    "workbench.editorAssociations": {
+        "*.copilotmd": "vscode.markdown.preview.editor",
+        "*.pdf": "pdf.preview"
+    },
+    "[javascriptreact]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "markdownlint.config": {
+        "MD026": false
+    },
+    "chat.instructionsFilesLocations": {
+        ".github/instructions": true,
+        ".claude/rules": true,
+        "~/.copilot/instructions": true,
+        "~/.claude/rules": true,
+        "/tmp/postman-collections-post-response.instructions.md": true,
+        "/tmp/postman-collections-pre-request.instructions.md": true,
+        "/tmp/postman-folder-post-response.instructions.md": true,
+        "/tmp/postman-folder-pre-request.instructions.md": true,
+        "/tmp/postman-http-request-post-response.instructions.md": true,
+        "/tmp/postman-http-request-pre-request.instructions.md": true,
+        "/tmp/nix-shell.rXYqt4/postman-collections-post-response.instructions.md": true,
+        "/tmp/nix-shell.rXYqt4/postman-collections-pre-request.instructions.md": true,
+        "/tmp/nix-shell.rXYqt4/postman-folder-post-response.instructions.md": true,
+        "/tmp/nix-shell.rXYqt4/postman-folder-pre-request.instructions.md": true,
+        "/tmp/nix-shell.rXYqt4/postman-http-request-post-response.instructions.md": true,
+        "/tmp/nix-shell.rXYqt4/postman-http-request-pre-request.instructions.md": true
+    },
+    "postman.mcp.notifications.postmanMCP": false,
+    "explorer.confirmPasteNative": false
 }
