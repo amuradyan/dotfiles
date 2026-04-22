@@ -1,8 +1,14 @@
 USER=$(whoami)
 
+bindkey "^[[5~" historyi-incremental-search-backward  # Page Up
+bindkey "^[[6~" history-incremental-search-forward   # Page Down
 # The following lines were added by compinstall
 zstyle ':completion:*' completer _complete _ignored _approximate
 zstyle :compinstall filename "/home/$USER/.zshrc"
+autoload -Uz compinit
+compinit
+# End of lines added by compinstall
+# Coloring and transparency setings
 
 # Base16 Shell
 BASE16_SHELL="$HOME/.config/base16-shell/"
@@ -10,6 +16,7 @@ BASE16_SHELL="$HOME/.config/base16-shell/"
 
 # misc
 alias ll='ls -al'
+alias llh='ll -h'
 alias lS='ls -1FSsh'
 alias ...='../..'
 alias mkdirp='mkdir -p'
@@ -53,10 +60,6 @@ start_tmux() {
   local DEFAULT_NAME="Default"
 }
 
-autoload -Uz compinit
-compinit
-# End of lines added by compinstall
-# Coloring and transparency setings
 
 # [ -n "$XTERM_VERSION" ] && transset-df -a >/dev/null
 
@@ -93,3 +96,4 @@ export RANGER_LOAD_DEFAULT_RC=FALSE
 
 plugins=(git colored-man-pages colorize)
 
+export PATH="/home/spectrum/.config/custom_scripts/:$PATH"

@@ -8,10 +8,9 @@ if [ ! -d "$SNAPSHOTS_DIR" ]; then
 fi
 
 if [ $# -eq 0 ]; then
-  NAME="$SNAPSHOTS_DIR/snap-$(date +%F.%T).png"
+  /run/current-system/sw/bin/scrot -o -s /tmp/screenshot.png && /run/current-system/sw/bin/xclip -selection clipboard -t image/png -i /tmp/screenshot.png
 else
   NAME="$SNAPSHOTS_DIR/$1.png"
+  /run/current-system/sw/bin/scrot -s "$NAME"
 fi
-
-scrot -s "$NAME"
 

@@ -4,7 +4,8 @@ URxvt*inheritPixmap:      true
 URxvt*transparent:        true
 URxvt*shading:            30
 URxvt*foreground:         grey
-URxvt.font:               xft:Px437 IBM DOS ISO8:size=12
+URxvt*saveLines:          5000
+URxvt.font:               xft:Px437 IBM DOS ISO8:size=12,xft:Noto Color Emoji:style=Regular:size=12
 URxvt.scrollBar:          false
 URxvt.keysym.C-minus:     resize-font:smaller
 URxvt.keysym.C-S-equal:   resize-font:bigger
