@@ -1,0 +1,365 @@
+#!/usr/bin/env bash
+# shove — dotfiles sync driver.
+# Reads shove.manifest and walks each entry. See Readme.md for intent.
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MANIFEST="$REPO_ROOT/shove.manifest"
+
+WRITE=0
+HOST_OVERRIDE=""
+FORCE_TEMPLATE=0
+SUDO_PRIMED=0
+declare -a ENTRY_FILTER=()
+declare -a PENDING_HOOKS=()
+
+die()  { printf 'shove: %s\n' "$*" >&2; exit 1; }
+warn() { printf 'shove: %s\n' "$*" >&2; }
+note() { printf '%s\n' "$*"; }
+
+detect_host() {
+  [[ -n "$HOST_OVERRIDE" ]] && { printf '%s\n' "$HOST_OVERRIDE"; return; }
+  [[ -e /etc/NIXOS ]] && printf 'nixos\n' || printf 'any\n'
+}
+
+# Emit every applicable entry as tab-separated:
+#   kind \t src_abs \t dst \t mode \t owner \t hook
+iter_entries() {
+  local host="$1"
+  local rawline line kind src dst mode owner ehost hook
+  while IFS= read -r rawline; do
+    line="${rawline%%#*}"
+    [[ -z "${line//[[:space:]]/}" ]] && continue
+    read -r kind src dst mode owner ehost hook <<<"$line"
+    [[ "$ehost" != "any" && "$ehost" != "$host" ]] && continue
+    dst="${dst//\$USER/$USER}"
+    dst="${dst/#\~/$HOME}"
+    owner="${owner//\$USER/$USER}"
+    if ((${#ENTRY_FILTER[@]})); then
+      local f keep=0
+      for f in "${ENTRY_FILTER[@]}"; do
+        [[ "$src" == *"$f"* || "$dst" == *"$f"* ]] && { keep=1; break; }
+      done
+      (( keep )) || continue
+    fi
+    printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$kind" "$REPO_ROOT/$src" "$dst" "$mode" "$owner" "$hook"
+  done < "$MANIFEST"
+}
+
+prime_sudo() {
+  (( SUDO_PRIMED )) && return
+  (( WRITE )) && sudo -v
+  SUDO_PRIMED=1
+}
+
+queue_hook() {
+  local h="$1"
+  [[ -z "$h" || "$h" == "-" ]] && return
+  local existing
+  for existing in "${PENDING_HOOKS[@]+"${PENDING_HOOKS[@]}"}"; do
+    [[ "$existing" == "$h" ]] && return
+  done
+  PENDING_HOOKS+=("$h")
+}
+
+exec_cmd() {
+  if (( WRITE )); then
+    "$@"
+  else
+    printf 'would: %s\n' "$*"
+  fi
+}
+
+# ---------------------------------------------------------------- status logic
+
+# Prints one state token: in-sync | repo-newer | system-newer | missing-target | missing-src | template-pending | template-installed | redacted-placeholder | redacted-edited | drifted
+check_file() {
+  local src="$1" dst="$2"
+  [[ ! -e "$src" ]] && { printf 'missing-src\n'; return; }
+  if [[ ! -e "$dst" ]]; then
+    printf 'missing-target\n'; return
+  fi
+  if cmp -s "$src" "$dst"; then
+    printf 'in-sync\n'
+  else
+    local ms md
+    ms=$(stat -c %Y "$src"); md=$(stat -c %Y "$dst")
+    if (( md > ms )); then printf 'system-newer\n'; else printf 'repo-newer\n'; fi
+  fi
+}
+
+check_dir() {
+  local src="$1" dst="$2"
+  [[ ! -d "$src" ]] && { printf 'missing-src\n'; return; }
+  [[ ! -d "$dst" ]] && { printf 'missing-target\n'; return; }
+  # additive semantics: ignore files that exist only in dst (live has extras).
+  local changed
+  changed=$(diff -rq "$src" "$dst" 2>/dev/null \
+    | grep -vE "^Only in ${dst}" \
+    | head -1 || true)
+  [[ -z "$changed" ]] && { printf 'in-sync\n'; return; }
+  printf 'drifted\n'
+}
+
+check_template() {
+  local dst="$2"
+  if [[ -e "$dst" ]]; then
+    printf 'template-installed\n'
+  else
+    printf 'template-pending\n'
+  fi
+}
+
+check_redacted() {
+  local src="$1" dst="$2"
+  [[ ! -e "$dst" ]] && { printf 'missing-target\n'; return; }
+  if cmp -s "$src" "$dst"; then
+    printf 'redacted-placeholder\n'
+  else
+    printf 'redacted-edited\n'
+  fi
+}
+
+# --------------------------------------------------------------------- pushers
+
+push_file() {
+  local src="$1" dst="$2" mode="$3" owner="$4"
+  local state; state=$(check_file "$src" "$dst")
+  [[ "$state" == "in-sync" ]] && return 0
+  [[ "$state" == "missing-src" ]] && { warn "src missing: $src"; return 1; }
+  local dstdir; dstdir=$(dirname "$dst")
+  if [[ "$owner" == "root" ]]; then
+    prime_sudo
+    exec_cmd sudo install -D -m "$mode" -o "$owner" -g "$owner" "$src" "$dst"
+  else
+    exec_cmd install -D -m "$mode" "$src" "$dst"
+  fi
+}
+
+push_dir() {
+  local src="$1" dst="$2" owner="$3"
+  [[ ! -d "$src" ]] && { warn "src missing: $src"; return 1; }
+  local state; state=$(check_dir "$src" "$dst")
+  [[ "$state" == "in-sync" ]] && return 0
+  local rsync_cmd=(rsync -a "$src/" "$dst/")
+  if [[ "$owner" == "root" ]]; then
+    prime_sudo
+    exec_cmd sudo "${rsync_cmd[@]}"
+  else
+    (( WRITE )) && mkdir -p "$dst"
+    exec_cmd "${rsync_cmd[@]}"
+  fi
+}
+
+push_template() {
+  local src="$1" dst="$2" mode="$3" owner="$4"
+  local exists=0
+  [[ -e "$dst" ]] && exists=1
+  if (( exists )) && (( ! FORCE_TEMPLATE )); then
+    note "skip template (target exists): $dst"
+    return 0
+  fi
+  if [[ "$owner" == "root" ]]; then
+    prime_sudo
+    exec_cmd sudo install -D -m "$mode" -o "$owner" -g "$owner" "$src" "$dst"
+    if (( WRITE )); then
+      note "opening editor for template: $dst"
+      sudo -E "${EDITOR:-vi}" "$dst"
+    else
+      note "would: edit $dst with \$EDITOR"
+    fi
+  else
+    exec_cmd install -D -m "$mode" "$src" "$dst"
+    if (( WRITE )); then
+      "${EDITOR:-vi}" "$dst"
+    else
+      note "would: edit $dst with \$EDITOR"
+    fi
+  fi
+}
+
+push_redacted() {
+  local src="$1" dst="$2" mode="$3" owner="$4"
+  local state; state=$(check_redacted "$src" "$dst")
+  if [[ "$state" == "redacted-edited" ]]; then
+    note "skip redacted (already edited): $dst"
+    return 0
+  fi
+  if [[ "$owner" == "root" ]]; then
+    prime_sudo
+    exec_cmd sudo install -D -m "$mode" -o "$owner" -g "$owner" "$src" "$dst"
+  else
+    exec_cmd install -D -m "$mode" "$src" "$dst"
+  fi
+  note "edit: \$EDITOR $dst   (placeholder fields need real values)"
+}
+
+# --------------------------------------------------------------------- pullers
+
+pull_file() {
+  local src="$1" dst="$2"
+  local state; state=$(check_file "$src" "$dst")
+  [[ "$state" == "in-sync" ]] && return 0
+  [[ "$state" == "missing-target" ]] && { warn "target missing: $dst"; return 1; }
+  exec_cmd cp -p "$dst" "$src"
+}
+
+pull_dir() {
+  local src="$1" dst="$2"
+  [[ ! -d "$dst" ]] && { warn "target missing: $dst"; return 1; }
+  mkdir -p "$src"
+  exec_cmd rsync -a "$dst/" "$src/"
+}
+
+pull_sys() {
+  local src="$1" dst="$2" owner="$3"
+  # /etc/nixos/configuration.nix is 0644; readable without sudo. Use sudo only if we have to.
+  if [[ -r "$dst" ]]; then
+    exec_cmd cp -p "$dst" "$src"
+  else
+    prime_sudo
+    exec_cmd sudo cp -p "$dst" "$src"
+    (( WRITE )) && sudo chown "$USER:$USER" "$src"
+  fi
+}
+
+# ------------------------------------------------------------------- hook impls
+
+run_hook_fc-cache()       { exec_cmd fc-cache -f; }
+run_hook_nixos-rebuild()  { prime_sudo; exec_cmd sudo nixos-rebuild switch; }
+run_hook_ssh-edit()       { note "reminder: \$EDITOR ~/.ssh/config (replace <private_key> with real key filename)"; }
+
+flush_hooks() {
+  local h
+  for h in "${PENDING_HOOKS[@]+"${PENDING_HOOKS[@]}"}"; do
+    local fn="run_hook_${h}"
+    if declare -F "$fn" >/dev/null; then
+      "$fn"
+    else
+      warn "unknown hook: $h"
+    fi
+  done
+  PENDING_HOOKS=()
+}
+
+# ---------------------------------------------------------------- subcommands
+
+cmd_status() {
+  local host; host=$(detect_host)
+  note "host: $host"
+  printf '\n%-20s %-10s %s\n' "STATE" "KIND" "TARGET"
+  printf '%-20s %-10s %s\n'   "-----" "----" "------"
+  local kind src dst mode owner hook state
+  while IFS=$'\t' read -r kind src dst mode owner hook; do
+    case "$kind" in
+      file|sys)  state=$(check_file     "$src" "$dst") ;;
+      dir)       state=$(check_dir      "$src" "$dst") ;;
+      template)  state=$(check_template "$src" "$dst") ;;
+      redacted)  state=$(check_redacted "$src" "$dst") ;;
+      *)         state="unknown-kind" ;;
+    esac
+    printf '%-20s %-10s %s\n' "$state" "$kind" "$dst"
+  done < <(iter_entries "$host")
+}
+
+cmd_push() {
+  local host; host=$(detect_host)
+  local kind src dst mode owner hook
+  while IFS=$'\t' read -r kind src dst mode owner hook; do
+    case "$kind" in
+      file|sys)  push_file "$src" "$dst" "$mode" "$owner" ;;
+      dir)       push_dir  "$src" "$dst" "$owner"         ;;
+      template)  push_template "$src" "$dst" "$mode" "$owner" ;;
+      redacted)  push_redacted "$src" "$dst" "$mode" "$owner" ;;
+      *)         warn "unknown kind: $kind"; continue ;;
+    esac
+    queue_hook "$hook"
+  done < <(iter_entries "$host")
+  flush_hooks
+}
+
+cmd_pull() {
+  local host; host=$(detect_host)
+  local kind src dst mode owner hook
+  while IFS=$'\t' read -r kind src dst mode owner hook; do
+    case "$kind" in
+      file)      pull_file "$src" "$dst" ;;
+      dir)       pull_dir  "$src" "$dst" ;;
+      sys)       pull_sys  "$src" "$dst" "$owner" ;;
+      template)  note "skip pull (template would leak secret): $dst" ;;
+      redacted)
+        local state; state=$(check_redacted "$src" "$dst")
+        if [[ "$state" == "redacted-placeholder" ]]; then
+          exec_cmd cp -p "$dst" "$src"
+        else
+          note "skip pull redacted (live file no longer a placeholder): $dst"
+        fi
+        ;;
+      *)         warn "unknown kind: $kind" ;;
+    esac
+  done < <(iter_entries "$host")
+}
+
+cmd_bootstrap() {
+  # Bootstrap = push everything, including seeding templates that are missing.
+  cmd_push
+}
+
+# -------------------------------------------------------------------- main
+
+usage() {
+  cat >&2 <<EOF
+shove — dotfiles sync driver.
+
+Usage: shove <command> [entry...] [flags]
+
+Commands:
+  status         Report drift per manifest entry.
+  push           Copy repo -> system. Seeds templates if target missing.
+  pull           Copy system -> repo. Skips templates and edited redacteds.
+  bootstrap      Alias for push, intended for fresh machines.
+
+Flags:
+  --dry-run      (default) Print actions without executing.
+  --write        Execute actions.
+  --host HOST    Override auto-detected host (any|nixos).
+  --force-template   Overwrite an existing template target.
+
+Entry filters are substrings matched against the src or dst columns of the
+manifest. 'shove push zsh' matches any entry whose src contains 'zsh'.
+EOF
+  exit 1
+}
+
+main() {
+  local cmd="${1:-}"
+  [[ -z "$cmd" ]] && usage
+  shift
+  while (($#)); do
+    case "$1" in
+      --dry-run)        WRITE=0 ;;
+      --write)          WRITE=1 ;;
+      --host)           shift; HOST_OVERRIDE="${1:-}" ;;
+      --force-template) FORCE_TEMPLATE=1 ;;
+      -h|--help)        usage ;;
+      --)               shift; ENTRY_FILTER+=("$@"); break ;;
+      -*)               die "unknown flag: $1" ;;
+      *)                ENTRY_FILTER+=("$1") ;;
+    esac
+    shift
+  done
+
+  [[ -f "$MANIFEST" ]] || die "manifest not found: $MANIFEST"
+
+  case "$cmd" in
+    status)     cmd_status ;;
+    push)       cmd_push ;;
+    pull)       cmd_pull ;;
+    bootstrap)  cmd_bootstrap ;;
+    -h|--help)  usage ;;
+    *)          die "unknown command: $cmd (try 'shove --help')" ;;
+  esac
+}
+
+main "$@"
