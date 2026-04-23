@@ -1,0 +1,38 @@
+# shove.manifest — declarative map of tracked files to their system targets.
+# The bin/shove driver reads this file. One entry per non-comment row,
+# whitespace-delimited columns. '-' means not applicable. '$USER' expands to
+# the current user; '~' expands to $HOME.
+#
+# kind       values:
+#   file      plain user file, copied verbatim.
+#   dir       directory tree, additive sync (does NOT delete untracked live files).
+#   sys       system file, always installed with sudo.
+#   template  gitignored target is seeded from a .example once; never overwritten.
+#   redacted  tracked file is a placeholder; requires manual edit after install.
+#
+# host        any | nixos (auto-detected via /etc/NIXOS; override with --host).
+# hook        -   | fc-cache | nixos-rebuild | ssh-edit  (runs once per invocation, after copies).
+
+# kind        src                             dst                             mode    owner   host    hook
+file          zsh/.zshrc                      ~/.zshrc                        0644    $USER   any     -
+file          tig/.tigrc                      ~/.tigrc                        0644    $USER   any     -
+file          git/.git-prompt.sh              ~/.git-prompt.sh                0644    $USER   any     -
+file          .Xresources                     ~/.Xresources                   0644    $USER   any     -
+file          .fehbg                          ~/.fehbg                        0755    $USER   any     -
+file          tmux/.tmux.conf                 ~/.tmux.conf                    0644    $USER   any     -
+file          x-files/.profile                ~/.profile                      0644    $USER   any     -
+file          x-files/.xinwer                 ~/.xinwer                       0644    $USER   any     -
+
+dir           .config/bspwm                   ~/.config/bspwm                 -       $USER   any     -
+dir           .config/polybar                 ~/.config/polybar               -       $USER   any     -
+dir           .config/ranger                  ~/.config/ranger                -       $USER   any     -
+dir           .config/rofi                    ~/.config/rofi                  -       $USER   any     -
+dir           .config/sxhkd                   ~/.config/sxhkd                 -       $USER   any     -
+dir           custom_scripts                  ~/.config/custom_scripts        -       $USER   any     -
+dir           vscode                          ~/.config/Code/User             -       $USER   any     -
+dir           fonts                           ~/.local/share/fonts            -       $USER   any     fc-cache
+
+redacted      .ssh/config                     ~/.ssh/config                   0600    $USER   any     ssh-edit
+
+sys           nixos/configuration.nix         /etc/nixos/configuration.nix    0644    root    nixos   nixos-rebuild
+template      nixos/db-init.sql.example       /etc/nixos/db-init.sql          0600    root    nixos   -
