@@ -79,11 +79,8 @@ in
         host all all 127.0.0.1/32 trust
         host all all ::1/128 trust
       '';
-      initialScript = pkgs.writeText "backend-initScript" ''
-        CREATE USER banvor WITH PASSWORD '<password>' CREATEDB;
-        CREATE DATABASE sklad;
-        GRANT ALL PRIVILEGES ON DATABASE sklad TO banvor;
-      '';
+      initialScript = pkgs.writeText "backend-initScript"
+        (builtins.readFile ./db-init.sql);
     };
     
   };
