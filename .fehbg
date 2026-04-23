@@ -1,2 +1,2 @@
 #!/bin/sh
-'feh' '--bg-fill' '/home/spectrum/Downloads/Death-Star.jpg' 
+feh --no-fehbg --bg-fill '/home/spectrum/Downloads/deathstar.jpg' 
