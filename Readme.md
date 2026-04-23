@@ -20,3 +20,9 @@ https://int10h.org/oldschool-pc-fonts/
 
 
 URxvt [font resize](https://github.com/simmel/urxvt-resize-font) should be installed
+
+## Redacted files
+
+Some files carry a placeholder instead of real content. Do **not** overwrite the live system copy with them naively.
+
+- `.ssh/config` — `IdentityFile ~/.ssh/<private_key>` is a placeholder; live machine uses a real key filename.
