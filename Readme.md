@@ -26,3 +26,4 @@ URxvt [font resize](https://github.com/simmel/urxvt-resize-font) should be insta
 Some files carry a placeholder instead of real content. Do **not** overwrite the live system copy with them naively.
 
 - `.ssh/config` — `IdentityFile ~/.ssh/<private_key>` is a placeholder; live machine uses a real key filename.
+- `nixos/configuration.nix` — the PostgreSQL `initialScript` carries `PASSWORD '<password>'` as a placeholder; live `/etc/nixos/configuration.nix` has the real password.
