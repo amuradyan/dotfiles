@@ -24,6 +24,7 @@ file          x-files/.profile                ~/.profile                      06
 file          x-files/.xinwer                 ~/.xinwer                       0644    $USER   any     -
 
 dir           .config/bspwm                   ~/.config/bspwm                 -       $USER   any     -
+dir           .config/mc                      ~/.config/mc                    -       $USER   any     -
 dir           .config/polybar                 ~/.config/polybar               -       $USER   any     -
 dir           .config/ranger                  ~/.config/ranger                -       $USER   any     -
 dir           .config/rofi                    ~/.config/rofi                  -       $USER   any     -

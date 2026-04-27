@@ -30,7 +30,7 @@ maxln=200    # Stop after $maxln lines.  Can be used like ls | head -n $maxln
 
 # Find out something about the file:
 mimetype=$(file --mime-type -Lb "$path")
-extension=$(/bin/echo "${path##*.}" | awk '{print tolower($0)}')
+extension=$(printf '%s' "${path##*.}" | awk '{print tolower($0)}')
 
 # Functions:
 # runs a command and saves its output into $output.  Useful if you need
@@ -38,7 +38,7 @@ extension=$(/bin/echo "${path##*.}" | awk '{print tolower($0)}')
 try() { output=$(eval '"$@"'); }
 
 # writes the output of the previously used "try" command
-dump() { /bin/echo "$output"; }
+dump() { printf '%s\n' "$output"; }
 
 # a common post-processing function used after most commands
 trim() { head -n "$maxln"; }
@@ -48,6 +48,15 @@ safepipe() { "$@"; test $? = 0 -o $? = 141; }
 
 # Image previews, if enabled in ranger.
 if [ "$preview_images" = "True" ]; then
+    # HEIC/HEIF/AVIF: w3mimgdisplay can't render these, so convert to JPEG via
+    # libheif's heif-dec (was heif-convert in libheif < 1.20) and let ranger
+    # display the cached file. Match by extension first (libmagic results vary
+    # across HEIC variants).
+    case "$extension" in
+        heic|heif|avif)
+            heif-dec -q 90 "$path" "$cached.jpg" >/dev/null 2>&1 \
+                && mv "$cached.jpg" "$cached" && exit 6 || exit 1;;
+    esac
     case "$mimetype" in
         # Image previews for SVG files, disabled by default.
         ### image/svg+xml)

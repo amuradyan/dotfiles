@@ -205,12 +205,24 @@ in
     arandr
     lsof
     docker
+    ranger
     fzf
     jq
     ffmpeg
     bun
     gh
     anydesk
+
+    # ranger preview backends + mc Type= matching
+    w3m            # w3mimgdisplay for ranger image previews on urxvt
+    bat            # syntax-highlighted text previews
+    poppler-utils  # pdftotext for PDF previews
+    mediainfo      # audio/video metadata
+    exiftool       # image metadata
+    atool          # archive content listing
+    p7zip          # 7z archive support
+    file           # libmagic; mc Type= rules shell out to this
+    libheif        # heif-convert for HEIC -> JPEG thumbnails (w3m can't render HEIC directly)
  ];
 
  environment.etc."libinput-gestures.conf".text = ''

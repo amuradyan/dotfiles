@@ -53,6 +53,7 @@ alias scaladoc3='~/devel/scala3/bin/scaladoc'
 
 # mc
 alias mcn='mc --nocolor'
+export MC_XDG_OPEN=feh
 
 start_tmux() {
   local DEFAULT_LAYOUT="v"
