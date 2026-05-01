@@ -88,6 +88,11 @@ in
   time.timeZone = "Asia/Yerevan";
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.gc = {                                             
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 14d";                                                      
+  };
   
   i18n = {
     defaultLocale = "en_US.UTF-8";
@@ -228,11 +233,13 @@ in
  environment.etc."libinput-gestures.conf".text = ''
     gesture swipe left  3 bspc desktop -f next.local
     gesture swipe right 3 bspc desktop -f prev.local
+    gesture swipe up    3 rofi -show window
  '';
 
  systemd.user.services.libinput-gestures = {
     enable = true;
-   path = with pkgs; [ libinput-gestures bspwm ];
+    wantedBy = [ "default.target" ];
+    path = with pkgs; [ libinput-gestures bspwm rofi];
     serviceConfig.ExecStart = "${pkgs.libinput-gestures}/bin/libinput-gestures";
     serviceConfig.Restart   = "always";
   };
