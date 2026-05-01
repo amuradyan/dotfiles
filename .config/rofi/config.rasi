@@ -1,5 +1,5 @@
 configuration {
-    font: "Px437 IBM DOS ISO8 R 12";
+    font: "Px437 IBM DOS ISO8 12";
     line-margin: 10;
 
     display-ssh:    "";
@@ -11,7 +11,7 @@ configuration {
 }
 
 
-@theme "~/.config/rofi/nord.rasi"
+@theme "~/.config/rofi/bar.rasi"
 
 listview {
 	lines: 8;

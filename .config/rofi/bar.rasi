@@ -1,0 +1,129 @@
+/**
+ * Polybar-matched rofi theme
+ * Mirrors the bar's palette: #222 background, #ffb52a amber accent,
+ * #dfdfdf off-white text, 1pt #737373 border, sharp corners.
+ */
+
+* {
+    font: "Px437 IBM DOS ISO8 12";
+
+    bg-0:        rgba(34, 34, 34, 50%);
+    bg-1:        rgba(42, 42, 42, 58%);
+    bg-2:        rgba(68, 68, 68, 35%);
+
+    fg-0:        #dfdfdf;
+    fg-1:        #888888;
+    fg-2:        #555555;
+
+    accent:      #ffb52a;
+    danger:      #e60053;
+    border-soft: #737373;
+
+    background-color: transparent;
+    text-color:       @fg-0;
+
+    highlight: underline bold #ffb52a;
+}
+
+window {
+    location:     center;
+    anchor:       center;
+    transparency: "screenshot";
+
+    width:   40%;
+    padding: 0;
+
+    background-color: @bg-0;
+    border:           1px;
+    border-color:     @border-soft;
+    border-radius:    0;
+
+    children: [ mainbox ];
+}
+
+mainbox {
+    spacing:  0;
+    padding:  0;
+    children: [ inputbar, message, listview ];
+}
+
+inputbar {
+    padding:          5px 14px;
+    spacing:          8px;
+    background-color: @bg-2;
+    text-color:       @fg-0;
+
+    border:        0 0 1px 0;
+    border-color:  @border-soft;
+    border-radius: 0;
+}
+
+prompt {
+    text-color: @accent;
+    margin:     0 0.5em 0 0;
+}
+
+entry, case-indicator {
+    text-color:        inherit;
+    placeholder-color: @fg-2;
+}
+
+message {
+    padding:          8px 12px;
+    background-color: @bg-1;
+    text-color:       @fg-1;
+
+    border:       0 0 1px 0;
+    border-color: @border-soft;
+}
+
+listview {
+    padding:          6px;
+    spacing:          2px;
+    background-color: @bg-0;
+    border-radius:    0;
+    dynamic:          false;
+}
+
+element {
+    padding:          3px 10px;
+    spacing:          8px;
+    border-radius:    0;
+    background-color: transparent;
+    text-color:       @fg-0;
+}
+
+element normal.normal    { background-color: transparent; text-color: @fg-0;    }
+element alternate.normal { background-color: transparent; text-color: @fg-0;    }
+element normal.active    { background-color: transparent; text-color: @accent; }
+element normal.urgent    { background-color: transparent; text-color: @danger; }
+
+element selected.normal  { background-color: @fg-2;       text-color: @fg-0;   }
+element selected.active  { background-color: @fg-2;       text-color: @fg-0;   }
+element selected.urgent  { background-color: @danger;     text-color: @fg-0;   }
+
+element-text, element-icon {
+    background-color: inherit;
+    text-color:       inherit;
+    vertical-align:   0.5;
+}
+
+element-icon {
+    size: 1.2em;
+}
+
+button {
+    padding:          6px;
+    background-color: @bg-1;
+    text-color:       @fg-0;
+    horizontal-align: 0.5;
+
+    border:        0 1px 0 0;
+    border-color:  @border-soft;
+    border-radius: 0;
+}
+
+button selected {
+    background-color: @accent;
+    text-color:       @bg-0;
+}
