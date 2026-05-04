@@ -1,7 +1,19 @@
 USER=$(whoami)
 
-bindkey "^[[5~" historyi-incremental-search-backward  # Page Up
+bindkey "^[[5~" history-incremental-search-backward  # Page Up
 bindkey "^[[6~" history-incremental-search-forward   # Page Down
+
+# Prefix history search: type a prefix, then Up/Down walks matching history.
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+
+# Bind both raw escape sequences AND application-mode sequences so it works
+# in URxvt regardless of cursor-key mode (tmux/some apps flip between them).
+bindkey "^[[A" up-line-or-beginning-search       # Up   (normal mode)
+bindkey "^[[B" down-line-or-beginning-search     # Down (normal mode)
+bindkey "^[OA" up-line-or-beginning-search       # Up   (application mode)
+bindkey "^[OB" down-line-or-beginning-search     # Down (application mode)
 # The following lines were added by compinstall
 zstyle ':completion:*' completer _complete _ignored _approximate
 zstyle :compinstall filename "/home/$USER/.zshrc"
@@ -68,8 +80,14 @@ autoload -U colors && colors
 
 # Lines configured by zsh-newuser-install
 HISTFILE=~/.histfile
-HISTSIZE=1000
-SAVEHIST=1000
+HISTSIZE=50000
+SAVEHIST=50000
+
+setopt HIST_IGNORE_DUPS         # don't store consecutive duplicates
+setopt HIST_IGNORE_SPACE        # commands starting with a space are not saved
+setopt HIST_REDUCE_BLANKS       # tidy whitespace before saving
+setopt SHARE_HISTORY            # share history live across open shells
+setopt EXTENDED_HISTORY         # record timestamp + duration per entry
 # End of lines configured by zsh-newuser-install
 
 setopt autocd extendedglob
