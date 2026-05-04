@@ -232,7 +232,7 @@ in
  systemd.user.services.three-finger-swipe = {
     enable = true;
     wantedBy = [ "default.target" ];
-    path = with pkgs; [ libinput bspwm rofi ];
+    path = with pkgs; [ python3 libinput bspwm rofi ];
     serviceConfig.ExecStart = "/home/spectrum/.config/custom_scripts/three-finger-swipe.py";
     serviceConfig.Restart   = "always";
   };
