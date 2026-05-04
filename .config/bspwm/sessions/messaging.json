@@ -16,7 +16,7 @@
       "class": "telegram-desktop, TelegramDesktop",
       "title": "Telegram",
       "cwd": "/home/spectrum/.local/share/TelegramDesktop",
-      "launch_cmd": "telegram-desktop",
+      "launch_cmd": "Telegram",
       "launch_args": ""
     }
   ],

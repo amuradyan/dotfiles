@@ -175,7 +175,9 @@ get_window_info() {
             fi
             ;;
         telegram-desktop|TelegramDesktop)
-            launch_cmd="telegram-desktop"
+            # NixOS ships the binary as `Telegram` (capital T), not the
+            # `telegram-desktop` name used on most other distros.
+            launch_cmd="Telegram"
             ;;
         element|Element)
             launch_cmd="element-desktop"
