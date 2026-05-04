@@ -14,12 +14,12 @@ X_OFF=${4:-0}
 FONT="DejaVu Sans Mono 12"
 
 ## Scan for available and broadcasting SSIDs.
-iwctl station $DEVICE scan
+iwctl station "$DEVICE" scan
 
 ## Get the networks that are available to the WiFi adapter and format them.
 ## Make sure the current network is always at the top of the list.
-CURR_SSID=$(iwctl station $DEVICE show | sed -n 's/^\s*Connected\snetwork\s*\(\S*\)\s*$/\1/p')
-IW_NETWORKS+=$(iwctl station $DEVICE get-networks | sed '/^--/d')
+CURR_SSID=$(iwctl station "$DEVICE" show | sed -n 's/^\s*Connected\snetwork\s*\(\S*\)\s*$/\1/p')
+IW_NETWORKS+=$(iwctl station "$DEVICE" get-networks | sed '/^--/d')
 IW_NETWORKS=$(echo "$IW_NETWORKS" | sed 1,4d)
 IW_NETWORKS=$(echo "$IW_NETWORKS" | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g")
 IFS=$'\n'
@@ -27,7 +27,10 @@ PREFIX=$'SSID                              SECURITY  \n'
 NETWORK_LIST=""
 while IFS= read -r line; do
 	line=${line:4}
-	SSID_NAME=$(echo "$line" | sed 's/\(\s*psk.*\)//')
+	# Trim leading whitespace: iwctl indents non-connected rows with extra
+	# spaces, so the fixed :4 strip leaves stray leading spaces that later
+	# break the awk -F"|" CHSSID extraction.
+	SSID_NAME=$(echo "$line" | sed 's/\(\s*psk.*\)//' | sed 's/^[[:space:]]*//')
 	printf -v pad %34s
 	line=$SSID_NAME$pad
 	line=${line:0:34}
@@ -50,7 +53,7 @@ if [[ ! -z $CURR_SSID ]]; then
 fi
 
 ## Determine whether or not there exists a WiFi connection for display purposes.
-CON_STATE=$(iwctl station $DEVICE show)
+CON_STATE=$(iwctl station "$DEVICE" show)
 if [[ "$CON_STATE" =~ " connected" ]]; then
 	MENU="disconnect from ${CURR_SSID}\nmanually connect to a network\n$IW_NETWORKS"
 elif [[ "$CON_STATE" =~ "disconnected" ]]; then
@@ -73,18 +76,19 @@ CHSSID=$(echo "$CHENTRY" | sed  's/\s\{2,\}/\|/g' | awk -F "|" '{print $1}')
 
 ## Support manual SSID entry.
 if [ "$CHENTRY" = "manually connect to a network" ] ; then
-	MSSID=$(echo "Enter your network's SSID." | rofi -dmenu -p "SSID: " -font "$FONT" -lines 1)
-	WIFI_PASS=$(echo "Enter the network password." | rofi -dmenu -password -p "Password: " -lines 1 -location "$POSITION" -yoffset "$Y_OFF" -xoffset "$X_OFF" -font "$FONT" -width -"$R_WIDTH")
-	iwctl station $DEVICE disconnect
-	iwctl --passphrase $WIFI_PASS station $DEVICE connect $MSSID
+	MSSID=$(rofi -dmenu -p "SSID" -lines 0 < /dev/null)
+	[ -z "$MSSID" ] && exit 0
+	WIFI_PASS=$(rofi -dmenu -password -p "Password" -mesg "Network: $MSSID" -lines 0 < /dev/null)
+	iwctl station "$DEVICE" disconnect
+	iwctl --passphrase "$WIFI_PASS" station "$DEVICE" connect "$MSSID"
 
 ## Support WiFi toggling.
 elif [[ "$CHENTRY" =~ "disconnect from " ]]; then
-	iwctl station $DEVICE disconnect
+	iwctl station "$DEVICE" disconnect
 
 ## Support connecting to the chosen network.
 elif [ "$CHSSID" != "" ]; then
-	WIFI_PASS=$(echo "Enter the network password." | rofi -dmenu -password -p "Password: " -lines 1 -location "$POSITION" -yoffset "$Y_OFF" -xoffset "$X_OFF" -font "$FONT" -width -"$R_WIDTH")
-	iwctl station $DEVICE disconnect
-	iwctl --passphrase $WIFI_PASS station $DEVICE connect $CHSSID
+	WIFI_PASS=$(rofi -dmenu -password -p "Password" -mesg "Network: $CHSSID" -lines 0 < /dev/null)
+	iwctl station "$DEVICE" disconnect
+	iwctl --passphrase "$WIFI_PASS" station "$DEVICE" connect "$CHSSID"
 fi
