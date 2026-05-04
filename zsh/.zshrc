@@ -17,6 +17,7 @@ bindkey "^[OB" down-line-or-beginning-search     # Down (application mode)
 # The following lines were added by compinstall
 zstyle ':completion:*' completer _complete _ignored _approximate
 zstyle :compinstall filename "/home/$USER/.zshrc"
+fpath=(~/.config/zsh/completions $fpath)
 autoload -Uz compinit
 compinit
 # End of lines added by compinstall

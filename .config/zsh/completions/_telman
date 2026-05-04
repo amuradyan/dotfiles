@@ -1,0 +1,111 @@
+#compdef telman
+# Tab completion for telman (bspwm session manager).
+#
+# Grammar (mirrors do_save / do_restore in ~/.config/custom_scripts/telman):
+#   telman save <name> [tok ...]      tok = N | !N        where 1 <= N <= 10
+#   telman restore <name> [N] [<name> [N] ...]
+#   telman show|info <name>
+#   telman delete|rm <name>
+#   telman list|ls
+#   telman help|--help|-h
+
+_telman() {
+  if (( CURRENT == 2 )); then
+    _telman_subcommands
+    return
+  fi
+
+  local cmd="${words[2]}"
+  case "$cmd" in
+    save)
+      if (( CURRENT == 3 )); then
+        _telman_save_name
+      else
+        _telman_desktop_filter
+      fi
+      ;;
+    restore|load)
+      _telman_restore_position
+      ;;
+    show|info|delete|rm)
+      (( CURRENT == 3 )) && _telman_session_names
+      ;;
+  esac
+}
+
+_telman_subcommands() {
+  local -a subs=(
+    'save:save current desktop layout'
+    'list:list saved sessions'
+    'ls:list saved sessions (alias of list)'
+    'restore:restore one or more sessions'
+    'load:restore one or more sessions (alias of restore)'
+    'show:show session details'
+    'info:show session details (alias of show)'
+    'delete:delete a saved session'
+    'rm:delete a saved session (alias of delete)'
+    'help:show help'
+  )
+  _describe -t subcommands 'telman subcommand' subs
+}
+
+# Reads session names (basenames of *.json) from the sessions dir.
+_telman_session_names() {
+  local -a names
+  local f
+  for f in ~/.config/bspwm/sessions/*.json(N); do
+    names+=("${f:t:r}")
+  done
+  (( ${#names} )) && _describe -t sessions 'session' names
+}
+
+# `save` name arg: offer existing names as suggestions, but accept any string.
+_telman_save_name() {
+  _alternative \
+    'sessions:existing session:_telman_session_names' \
+    'new:new session name: '
+}
+
+# Desktop filter tokens for `save`: include (1..10) and exclude (!1..!10).
+_telman_desktop_filter() {
+  local expl
+  _description desktops expl 'desktop filter (1-10 include, !1-!10 exclude)'
+  compadd "$expl[@]" -- 1 2 3 4 5 6 7 8 9 10 \!1 \!2 \!3 \!4 \!5 \!6 \!7 \!8 \!9 \!10
+}
+
+# `restore` arg N (where N >= 3): the parser pairs each session name with
+# an optional numeric override that immediately follows it. So:
+#   - if the previous word is an existing session name, offer numbers 1..10
+#     (override) AND further session names (start of next pair).
+#   - otherwise (previous word was 'restore' or a numeric override), only
+#     session names make sense next.
+_telman_restore_position() {
+  local prev="${words[CURRENT-1]}"
+  local -a names
+  local f
+  for f in ~/.config/bspwm/sessions/*.json(N); do
+    names+=("${f:t:r}")
+  done
+
+  local prev_is_session=0
+  local n
+  for n in $names; do
+    [[ "$prev" == "$n" ]] && { prev_is_session=1; break }
+  done
+
+  if (( prev_is_session )); then
+    _alternative \
+      'desktops:desktop override:_telman__nums' \
+      'sessions:next session:_telman_session_names'
+  else
+    _telman_session_names
+  fi
+}
+
+_telman__nums() {
+  local expl
+  _description desktops expl 'desktop override (1-10)'
+  compadd "$expl[@]" -- 1 2 3 4 5 6 7 8 9 10
+}
+
+_telman "$@"

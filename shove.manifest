@@ -29,6 +29,7 @@ dir           .config/polybar                 ~/.config/polybar               - 
 dir           .config/ranger                  ~/.config/ranger                -       $USER   any     -
 dir           .config/rofi                    ~/.config/rofi                  -       $USER   any     -
 dir           .config/sxhkd                   ~/.config/sxhkd                 -       $USER   any     -
+dir           .config/zsh                     ~/.config/zsh                   -       $USER   any     -
 dir           custom_scripts                  ~/.config/custom_scripts        -       $USER   any     -
 dir           vscode                          ~/.config/Code/User             -       $USER   any     -
 dir           fonts                           ~/.local/share/fonts            -       $USER   any     fc-cache
