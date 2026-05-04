@@ -201,7 +201,6 @@ in
     scala-cli
     killall
     emacs
-    libinput-gestures
     udisks2
     libinput
     xdotool
@@ -230,17 +229,11 @@ in
     libheif        # heif-convert for HEIC -> JPEG thumbnails (w3m can't render HEIC directly)
  ];
 
- environment.etc."libinput-gestures.conf".text = ''
-    gesture swipe left  3 bspc desktop -f next.local
-    gesture swipe right 3 bspc desktop -f prev.local
-    gesture swipe up    3 rofi -show window
- '';
-
- systemd.user.services.libinput-gestures = {
+ systemd.user.services.three-finger-swipe = {
     enable = true;
     wantedBy = [ "default.target" ];
-    path = with pkgs; [ libinput-gestures bspwm rofi];
-    serviceConfig.ExecStart = "${pkgs.libinput-gestures}/bin/libinput-gestures";
+    path = with pkgs; [ libinput bspwm rofi ];
+    serviceConfig.ExecStart = "/home/spectrum/.config/custom_scripts/three-finger-swipe.py";
     serviceConfig.Restart   = "always";
   };
 
