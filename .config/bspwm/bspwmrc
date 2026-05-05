@@ -3,6 +3,13 @@
 xrdb ~/.Xresources
 setxkbmap -option caps:escape
 
+# Push DISPLAY/XAUTHORITY into the systemd user manager so user services
+# spawned at login (which started before X) get a working env on next start.
+# Restart three-finger-swipe so it picks up DISPLAY — without this its bspc/rofi
+# subprocesses fail silently after a reboot even though the unit is "active".
+systemctl --user import-environment DISPLAY XAUTHORITY
+systemctl --user restart three-finger-swipe.service
+
 # Let initial_setup.sh handle monitor detection and configuration
 $HOME/.config/bspwm/initial_setup.sh
 $HOME/.config/polybar/launch.sh &
