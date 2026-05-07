@@ -82,7 +82,7 @@ These are the generic packages the configs assume exist on `PATH`. On NixOS they
 | `wifi-picker.sh` | rofi-driven SSID picker |
 | `suspender.sh` | idle-suspend helper |
 | `paplay` | pulseaudio play wrapper |
-| `three-finger-swipe.py` | continuous 3-finger touchpad gestures: ←/→ step desktops per ~80px of motion, ↑ opens `rofi -show window`, ↓ opens `rofi -show drun`. Runs as `systemd.user.services.three-finger-swipe`. Replaces `libinput-gestures` (which has no continuous mode). |
+| `trackpad-gestures.py` | touchpad gestures: 3-finger ←/→ step desktops per ~80px (continuous), 3-finger ↑ opens `rofi -show window`, 3-finger ↓ opens `rofi -show drun`, 4-finger ←/→ walk focus history one window per swipe (← older, → newer; wrapped in `bspc wm -h off/on` so consecutive swipes traverse the stack instead of toggling). Runs as `systemd.user.services.trackpad-gestures`. Replaces `libinput-gestures` (which has no continuous mode). |
 
 ## Redacted files
 

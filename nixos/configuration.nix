@@ -229,11 +229,11 @@ in
     libheif        # heif-convert for HEIC -> JPEG thumbnails (w3m can't render HEIC directly)
  ];
 
- systemd.user.services.three-finger-swipe = {
+ systemd.user.services.trackpad-gestures = {
     enable = true;
     wantedBy = [ "default.target" ];
     path = with pkgs; [ python3 libinput bspwm rofi ];
-    serviceConfig.ExecStart = "/home/spectrum/.config/custom_scripts/three-finger-swipe.py";
+    serviceConfig.ExecStart = "/home/spectrum/.config/custom_scripts/trackpad-gestures.py";
     serviceConfig.Restart   = "always";
   };
 
