@@ -63,7 +63,7 @@ Hosts are auto-detected: `nixos` if `/etc/NIXOS` exists, else `any`. Manifest en
 These are the generic packages the configs assume exist on `PATH`. On NixOS they come in via `nixos/configuration.nix`; elsewhere, install with your distro's package manager.
 
 - Window management: `bspwm`, `sxhkd`, `polybar`, `dunst`
-- Terminal + launcher: `rxvt-unicode` (URxvt), `rofi`, `xsecurelock`
+- Terminal + launcher: `rxvt-unicode` (URxvt), `rofi`, `rofimoji`, `xsecurelock`
 - Shell + utilities: `zsh`, `tmux`, `tig`, `ranger`, `mc`
 - X helpers: `scrot`, `xclip`, `feh`, `xdotool`, `xrandr`, `xidlehook`
 - Sound: `pipewire` or `pulseaudio`, `alsa-utils`, `pavucontrol`
