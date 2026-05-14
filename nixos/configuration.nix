@@ -204,6 +204,7 @@ in
     udisks2
     libinput
     xdotool
+    rofimoji
     sox
     gimp-with-plugins
     arandr
