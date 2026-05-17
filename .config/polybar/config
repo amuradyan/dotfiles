@@ -211,7 +211,7 @@ animation-discharging-framerate = 5000
 
 [module/temperature]
 type = internal/temperature
-thermal-zone = 0
+thermal-zone = 8
 warn-temperature = 60
 
 format = %{F#555}󰔏%{F-} <label>
