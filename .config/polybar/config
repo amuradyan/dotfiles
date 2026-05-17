@@ -73,7 +73,8 @@ interval = 25
 
 mount-0 = /
 
-label-mounted = %{F#555}󰋊%{F-}: %percentage_used%%
+label-mounted = %{F#555}󰋊%{F-}: %percentage_used:2%%
+format-mounted = %{A1:/home/spectrum/.config/polybar/scripts/popup-show.sh disk:}<label-mounted>%{A}
 label-unmounted = %mountpoint% not mounted
 label-unmounted-foreground = ${colors.foreground-alt}
 
@@ -109,16 +110,14 @@ label-empty-padding = 2
 [module/cpu]
 type = internal/cpu
 interval = 2
-format-prefix = "󰍛 "
-format-prefix-foreground = ${colors.foreground-alt}
 label = %percentage:2%%
+format = %{A1:/home/spectrum/.config/polybar/scripts/popup-show.sh cpu:}%{F#555}󰍛%{F-} <label>%{A}
 
 [module/memory]
 type = internal/memory
 interval = 2
-format-prefix = "󰘚 "
-format-prefix-foreground = ${colors.foreground-alt}
-label = %percentage_used%%
+label = %percentage_used:2%%
+format = %{A1:/home/spectrum/.config/polybar/scripts/popup-show.sh mem:}%{F#555}󰘚%{F-} <label>%{A}
 
 [module/wlan]
 type = internal/network

@@ -1,0 +1,43 @@
+/**
+ * Polybar hover-tooltip popup theme.
+ * Inherits palette + font from bar.rasi; collapses to a message-only window
+ * positioned via -location/-xoffset/-yoffset at runtime.
+ */
+
+@import "bar.rasi"
+
+window {
+    location:     northwest;
+    anchor:       northwest;
+    transparency: "screenshot";
+
+    width:   320px;
+    padding: 0;
+
+    background-color: @bg-0;
+    border:           1px;
+    border-color:     @border-soft;
+    border-radius:    0;
+
+    children: [ mainbox ];
+}
+
+mainbox {
+    spacing:  0;
+    padding:  0;
+    children: [ message ];
+}
+
+message {
+    padding:          6px 10px;
+    background-color: @bg-0;
+    text-color:       @fg-0;
+
+    border:        0;
+    border-radius: 0;
+}
+
+textbox {
+    text-color:       @fg-0;
+    background-color: transparent;
+}
