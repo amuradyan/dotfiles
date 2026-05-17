@@ -183,7 +183,8 @@ toggle_trust() {
 # Useful for status bars like polybar, etc.
 print_status() {
     if power_on; then
-        printf ''
+        connected_icon='󰂯'
+        disconnected_icon='󰂲'
 
         paired_devices_cmd="devices Paired"
         # Check if an outdated version of bluetoothctl is used to preserve backwards compatibility
@@ -194,22 +195,25 @@ print_status() {
         mapfile -t paired_devices < <(bluetoothctl $paired_devices_cmd | grep Device | cut -d ' ' -f 2)
         counter=0
 
+        connected_devices=""
+
         for device in "${paired_devices[@]}"; do
             if device_connected "$device"; then
                 device_alias=$(bluetoothctl info "$device" | grep "Alias" | cut -d ' ' -f 2-)
 
                 if [ $counter -gt 0 ]; then
-                    printf ", %s" "$device_alias"
+                    connected_devices+=", $device_alias"
                 else
-                    printf " %s" "$device_alias"
+                    connected_devices="$device_alias"
                 fi
 
                 ((counter++))
             fi
         done
-        printf "\n"
+
+        echo "%{F#555}$connected_icon" "%{F#FFF}$connected_devices"
     else
-        echo ""
+        echo "%{F#555}$disconnected_icon"
     fi
 }
 
