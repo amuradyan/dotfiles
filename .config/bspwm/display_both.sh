@@ -13,18 +13,13 @@ if [ "$GPU_MODE" = sync ]; then
          --output "$HDMI" --auto --right-of "$EDP" \
          --output "$DP"   --auto --above "$EDP"
 else
-  # Offload/reverse-PRIME: the X screen is frozen at its boot size (e.g. 7680x2400)
-  # and cannot grow, and '--auto'/'--above'/multi-output xrandr calls SIGFPE. Lay all
-  # three side-by-side with explicit modes. NOTE: a panel + two large externals can
-  # exceed the frozen framebuffer width; if an output stays dark, reboot into the
-  # gpu-sync entry — the proper path for multi-monitor docking (you're on AC anyway).
-  log "Offload 3-monitor layout is framebuffer-limited; gpu-sync recommended for docking."
-  HMODE=$(xrandr -q | grep -A1 "^$HDMI connected" | tail -1 | awk '{print $1}')
-  DMODE=$(xrandr -q | grep -A1 "^$DP connected"   | tail -1 | awk '{print $1}')
-  HW=${HMODE%x*}
-  xrandr --output "$EDP"  --primary --mode 1920x1200 --pos 0x0 --transform none 2>/dev/null || true
-  xrandr --output "$HDMI" --mode "${HMODE:-1920x1080}" --pos 1920x0 2>/dev/null || true
-  xrandr --output "$DP"   --mode "${DMODE:-1920x1080}" --pos "$((1920 + ${HW:-1920}))x0" 2>/dev/null || true
+  # Offload/reverse-PRIME: the canvas pinned at boot (Virtual 3840x3360, offload-only)
+  # fits ONE stacked external + panel, never two externals — any 2-external arrangement
+  # exceeds it (side-by-side > 3840 wide, double-stack > 3360 tall). Drive a single
+  # stacked external cleanly and recommend gpu-sync for a true multi-monitor
+  # battlestation (the NVIDIA driver resizes the fb there, and you're on AC anyway).
+  log "Offload framebuffer fits one stacked external; dual external needs gpu-sync. Driving HDMI only."
+  exec ~/.config/bspwm/display_hdmi.sh
 fi
 
 bspc monitor "$HDMI" -d I II III

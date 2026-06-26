@@ -31,16 +31,22 @@ if [ "$GPU_MODE" = sync ]; then
   xrandr --output "$EDP"  --primary --mode 1920x1200 \
          --output "$HDMI" --auto --above "$EDP"
 else
-  # Offload/reverse-PRIME constraints: the X screen is frozen at its boot size and
-  # cannot grow (RRSetScreenSize -> BadValue), and ANY multi-output xrandr call
-  # SIGFPEs. So configure each output in its own call, side-by-side within the
-  # existing framebuffer (panel 1920 wide + a 4K external = 5760 <= fb). The
-  # fb-shrink sub-request errors harmlessly, so the exit status is ignored.
-  # '--auto' SIGFPEs under reverse-PRIME, so pass the external's preferred mode
-  # explicitly (an explicit --mode only triggers the harmless fb-shrink BadValue).
+  # Offload/reverse-PRIME: per-output explicit --mode/--pos calls only ('--auto',
+  # '--above' and multi-output calls SIGFPE); the harmless fb-shrink BadValue is
+  # ignored. The X screen can't resize at runtime, so the layout must fit the canvas
+  # pinned at boot (services.xserver.screenSection Virtual 3840x3360, offload-only).
+  # When that canvas is tall enough, stack the external ABOVE the panel (mirrors
+  # gpu-sync's --above); else (legacy/un-rebuilt 7680x2400 fb) fall back to side-by-side.
   HMODE=$(xrandr -q | grep -A1 "^$HDMI connected" | tail -1 | awk '{print $1}')
-  xrandr --output "$EDP"  --primary --mode 1920x1200 --pos 0x0 --transform none 2>/dev/null || true
-  xrandr --output "$HDMI" --mode "${HMODE:-1920x1080}" --pos 1920x0 2>/dev/null || true
+  HMODE=${HMODE:-1920x1080}; HH=${HMODE#*x}
+  SCRH=$(xrandr -q | sed -n '1s/.*current [0-9]\+ x \([0-9]\+\).*/\1/p')
+  if [ "${SCRH:-0}" -ge "$(( HH + 1200 ))" ]; then
+    xrandr --output "$HDMI" --mode "$HMODE" --pos 0x0 2>/dev/null || true
+    xrandr --output "$EDP"  --primary --mode 1920x1200 --pos "0x$HH" --transform none 2>/dev/null || true
+  else
+    xrandr --output "$EDP"  --primary --mode 1920x1200 --pos 0x0 --transform none 2>/dev/null || true
+    xrandr --output "$HDMI" --mode "$HMODE" --pos 1920x0 2>/dev/null || true
+  fi
 fi
 
 log "Step 4: Window state AFTER xrandr:"
