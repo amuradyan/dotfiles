@@ -20,5 +20,9 @@ else
   xrandr --output "$EDP" --primary --mode 1920x1200 --pos "0x$DH" --transform none 2>/dev/null || true
 fi
 
-bspc monitor "$DP"  -d I II III IV V VI
-bspc monitor "$EDP" -d VII VIII IX X
+# Panel owns I-IV and leads the count (super+1..4 → panel); DP takes V-X. Shrink the
+# panel first so it releases V-X before DP claims them (avoids duplicate desktop names),
+# then put the panel first so the global desktop order starts on it.
+bspc monitor "$EDP" -d I II III IV
+bspc monitor "$DP"  -d V VI VII VIII IX X
+bspc wm --reorder-monitors "$EDP" "$DP"

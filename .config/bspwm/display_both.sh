@@ -13,15 +13,19 @@ if [ "$GPU_MODE" = sync ]; then
          --output "$HDMI" --auto --right-of "$EDP" \
          --output "$DP"   --auto --above "$EDP"
 else
-  # Offload/reverse-PRIME: the canvas pinned at boot (Virtual 3840x3360, offload-only)
-  # fits ONE stacked external + panel, never two externals — any 2-external arrangement
-  # exceeds it (side-by-side > 3840 wide, double-stack > 3360 tall). Drive a single
-  # stacked external cleanly and recommend gpu-sync for a true multi-monitor
-  # battlestation (the NVIDIA driver resizes the fb there, and you're on AC anyway).
+  # Offload/reverse-PRIME: the framebuffer reallocates on demand, but two externals don't
+  # lay out cleanly here (stacking two 4K above the panel needs ~5520 tall, beyond the
+  # pinned Virtual; side-by-side needs a very wide canvas). Drive a single stacked external
+  # cleanly and use gpu-sync for a true multi-monitor battlestation (the NVIDIA driver
+  # resizes the fb freely there, and you're on AC anyway).
   log "Offload framebuffer fits one stacked external; dual external needs gpu-sync. Driving HDMI only."
   exec ~/.config/bspwm/display_hdmi.sh
 fi
 
-bspc monitor "$HDMI" -d I II III
-bspc monitor "$DP"   -d IV V VI
-bspc monitor "$EDP"  -d VII VIII IX X
+# Panel owns I-IV and leads the count (super+1..4 → panel); externals take V-X
+# (HDMI V-VII, DP VIII-X). Shrink the panel first so it releases V-X before the
+# externals claim them (avoids duplicate desktop names), then order panel-first.
+bspc monitor "$EDP"  -d I II III IV
+bspc monitor "$HDMI" -d V VI VII
+bspc monitor "$DP"   -d VIII IX X
+bspc wm --reorder-monitors "$EDP" "$HDMI" "$DP"
