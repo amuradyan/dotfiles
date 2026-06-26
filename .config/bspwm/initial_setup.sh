@@ -3,62 +3,39 @@
 LOG_FILE=/tmp/bspwm_monitor.log
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S.%3N')] [INITIAL_SETUP] $*" >> "$LOG_FILE"; }
 
-HDMI_CONNECTED=$(xrandr -q | grep 'HDMI-0 connected')
-DP_CONNECTED=$(xrandr -q | grep -w 'DP-1-1 connected')
-
 SCRIPTS_DIR=~/.config/bspwm
+source "$SCRIPTS_DIR/lib/detect_outputs.sh"
 
-log "========== INITIAL_SETUP STARTED (BACKUP VERSION) =========="
+# Bind dGPU-attached connectors to the Intel source up front when on offload, so
+# externals can be detected and lit; a no-op under sync.
+ensure_prime_sink
 
-if [ -n "$HDMI_CONNECTED" ] && [ -n "$DP_CONNECTED" ]; then
+log "========== INITIAL_SETUP STARTED (mode=$GPU_MODE EDP=$EDP HDMI=${HDMI:-none} DP=${DP:-none}) =========="
+
+if [ -n "$HDMI" ] && [ -n "$DP" ]; then
   $SCRIPTS_DIR/display_both.sh
-elif [ -n "$HDMI_CONNECTED" ]; then
+elif [ -n "$HDMI" ]; then
   $SCRIPTS_DIR/display_hdmi.sh
-elif [ -n "$DP_CONNECTED" ]; then
+elif [ -n "$DP" ]; then
   $SCRIPTS_DIR/display_dp.sh
 else
-  # Single monitor setup - eDP-1-1 only
-  log "Single monitor mode detected"
-  log "Step 1: Running xrandr to configure single display"
-  xrandr --output eDP-1-1 --primary --mode 1920x1200 --output HDMI-0 --off 2>/dev/null || true
+  # No external connected — internal panel ($EDP) only. Reclaim all desktops onto
+  # it and drop any stale external monitor bspwm still holds. Name-agnostic:
+  # the stale monitor may be HDMI-0/DP-1 (sync) or HDMI-1-0/DP-1-0 (offload).
+  log "Single monitor mode ($EDP)"
+  source "$SCRIPTS_DIR/lib/migrate_windows.sh"
 
-  log "Step 2: Extending eDP-1-1 to I-X (creates duplicate desktop names temporarily)"
-  bspc monitor eDP-1-1 -d I II III IV V VI VII VIII IX X
-  log "Window state AFTER extending eDP-1-1 (while HDMI-0 may still exist in bspwm):"
-  bspc query -N | xargs -I {} sh -c 'desktop=$(bspc query -D -n {} --names 2>/dev/null); monitor=$(bspc query -M -n {} --names 2>/dev/null); echo "  $monitor:$desktop - window {}"' >> "$LOG_FILE" 2>&1
+  xrandr --output "$EDP" --primary --mode 1920x1200 2>/dev/null || true
 
-  # For each desktop on HDMI-0, move its windows to the corresponding desktop on eDP-1
-  log "Step 3: Migrating windows from HDMI-0 (only VII-X, not V-VI)"
-  for desktop in VII VIII IX X; do
-    # Get all windows on the current desktop of HDMI-0
-    windows=$(bspc query -N -d HDMI-0:$desktop 2>/dev/null)
+  log "Extending $EDP to I-X"
+  bspc monitor "$EDP" -d I II III IV V VI VII VIII IX X
 
-    if [ -z "$windows" ]; then
-      log "  No windows on HDMI-0:$desktop"
-    else
-      for window in $windows; do
-        log "  Moving window $window from HDMI-0:$desktop to eDP-1-1:$desktop"
-        bspc node $window -d eDP-1-1:$desktop
-      done
-    fi
+  for m in $(bspc query -M --names); do
+    [ "$m" = "$EDP" ] && continue
+    log "Folding stale monitor $m into $EDP, then removing it"
+    migrate_windows "$m" "$EDP" I II III IV V VI VII VIII IX X
+    bspc monitor "$m" -r 2>/dev/null || true
   done
 
-  log "Step 4: Window state AFTER migration, BEFORE removing HDMI-0:"
-  bspc query -N | xargs -I {} sh -c 'desktop=$(bspc query -D -n {} --names 2>/dev/null); monitor=$(bspc query -M -n {} --names 2>/dev/null); echo "  $monitor:$desktop - window {}"' >> "$LOG_FILE" 2>&1
-
-  # After all windows have been moved, remove HDMI-0 from the monitor setup if it exists
-  log "Step 5: Removing HDMI-0 from bspwm"
-  bspc monitor HDMI-0 -r 2>/dev/null || true
-
-  log "Step 6: Window state AFTER removing HDMI-0:"
-  bspc query -N | xargs -I {} sh -c 'desktop=$(bspc query -D -n {} --names 2>/dev/null); monitor=$(bspc query -M -n {} --names 2>/dev/null); echo "  $monitor:$desktop - window {}"' >> "$LOG_FILE" 2>&1
-
-  log "========== DISCONNECT MIGRATION COMPLETE =========="
-
-  # echo "No external monitors detected."
-  # bspc monitor eDP-1 -d I II III IV V VI VII VIII IX X; for desktop in V VI VII VIII IX X; do for win in $(bspc query -N -d HDMI-1-0:$desktop); do bspc node $win -d eDP-1:$desktop; done; done; bspc monitor HDMI-1-0 -r
-  # bspc monitor eDP-1 -o I II III IV V VI VII VIII IX X
-  # bspc monitor HDMI-1-0 -r
-  # I had to comment --off, since it logs me out of the session on NixOS 24 with NVIDIA drivers
-  # xrandr --output HDMI-1-0 --off --output DP-1 --off
+  log "========== SINGLE-MONITOR SETUP COMPLETE =========="
 fi
