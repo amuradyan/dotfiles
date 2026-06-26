@@ -2,7 +2,7 @@
 # Spawned by polybar's format-action when the icon is clicked.
 # Renders the matching stat script's output as a rofi popup positioned
 # under the bar that contains the click.
-# usage: popup-show.sh <cpu|mem|disk>
+# usage: popup-show.sh <cpu|mem|disk|bat>
 
 set -u
 
@@ -13,7 +13,8 @@ case "$module" in
   cpu)  body=$("$scripts/popup-cpu.sh")  ; w=320 ;;
   mem)  body=$("$scripts/popup-mem.sh")  ; w=280 ;;
   disk) body=$("$scripts/popup-disk.sh") ; w=300 ;;
-  *) echo "usage: $0 <cpu|mem|disk>" >&2; exit 2 ;;
+  bat)  body=$("$scripts/popup-battery.sh") ; w=300 ;;
+  *) echo "usage: $0 <cpu|mem|disk|bat>" >&2; exit 2 ;;
 esac
 
 eval "$(xdotool getmouselocation --shell)"

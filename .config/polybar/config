@@ -201,8 +201,9 @@ battery = BAT0
 adapter = ADP1
 full-at = 98
 
-format-charging = <animation-charging> <label-charging>
-format-discharging = <animation-discharging> <label-discharging>
+format-charging = %{A1:/home/spectrum/.config/polybar/scripts/popup-show.sh bat:}<animation-charging> <label-charging>%{A}
+format-discharging = %{A1:/home/spectrum/.config/polybar/scripts/popup-show.sh bat:}<animation-discharging> <label-discharging>%{A}
+format-full = %{A1:/home/spectrum/.config/polybar/scripts/popup-show.sh bat:}<label-full>%{A}
 
 format-full-prefix = 󰁹
 format-full-prefix-foreground = ${colors.foreground-alt}
