@@ -33,3 +33,14 @@ ensure_prime_sink() {
   [ -n "$NV" ]              || return 0
   xrandr --setprovideroutputsource "$NV" modesetting 2>/dev/null || true
 }
+
+# Preferred mode (the '+'-marked resolution) for a connected output, e.g. "3840x2160".
+# Robust to xrandr column layout — reads the indented mode block under the output header and
+# returns the first preferred line. Empty if the output is absent/disconnected (callers fall back).
+output_preferred_mode() {
+  xrandr -q | awk -v o="$1" '
+    $1 == o && $2 == "connected" { f = 1; next }  # enter the block (exact field: "disconnected" excluded)
+    f && /^[^[:space:]]/         { f = 0 }        # a non-indented line starts the next output
+    f && /\+/                    { print $1; exit } # indented mode line marked preferred
+  '
+}

@@ -19,23 +19,36 @@ elif [ -n "$HDMI" ]; then
 elif [ -n "$DP" ]; then
   $SCRIPTS_DIR/display_dp.sh
 else
-  # No external connected — internal panel ($EDP) only. Reclaim all desktops onto
-  # it and drop any stale external monitor bspwm still holds. Name-agnostic:
-  # the stale monitor may be HDMI-0/DP-1 (sync) or HDMI-1-0/DP-1-0 (offload).
+  # No external connected — collapse X and bspwm back to the internal panel ($EDP) only.
+  # Name-agnostic: a stale external may be HDMI-0/DP-1 (sync) or HDMI-1-0/DP-1-0 (offload).
   log "Single monitor mode ($EDP)"
   source "$SCRIPTS_DIR/lib/migrate_windows.sh"
 
-  xrandr --output "$EDP" --primary --mode 1920x1200 2>/dev/null || true
+  # Geometry teardown: a disconnected external keeps its last mode/position (e.g. HDMI-1-0 at
+  # 3840x2160+0+0), leaving a pointer dead-zone and an oversized 3840x3360 canvas. Turn off any
+  # non-panel output still holding a geometry, pin the panel at the origin, then shrink the
+  # framebuffer. One output per xrandr call (multi-output xrandr SIGFPEs under reverse-PRIME).
+  log "Collapsing geometry to $EDP only"
+  xrandr -q | awk '/^(HDMI|DP)[^ ]* (connected|disconnected) [0-9]+x[0-9]+\+/{print $1}' \
+    | while read -r o; do xrandr --output "$o" --off 2>>"$LOG_FILE" || log "WARN: --off $o failed"; done
+  xrandr --output "$EDP" --primary --mode 1920x1200 --pos 0x0 2>>"$LOG_FILE" || log "WARN: $EDP reposition failed"
+  xrandr --fb 1920x1200 2>>"$LOG_FILE" || log "WARN: fb shrink failed"
 
+  # Ensure every named desktop I-X exists on the panel (targets for any fold below).
   log "Extending $EDP to I-X"
   bspc monitor "$EDP" -d I II III IV V VI VII VIII IX X
 
+  # Fold any monitor bspwm still holds (race: its auto-removal hasn't fired) onto the panel,
+  # preserving desktop identity — a window on V stays on V — then drop the stale monitor.
   for m in $(bspc query -M --names); do
     [ "$m" = "$EDP" ] && continue
-    log "Folding stale monitor $m into $EDP, then removing it"
+    log "Folding stale monitor $m into $EDP (by desktop name), then removing it"
     migrate_windows "$m" "$EDP" I II III IV V VI VII VIII IX X
-    bspc monitor "$m" -r 2>/dev/null || true
+    bspc monitor "$m" -r 2>>"$LOG_FILE" || log "WARN: removing $m failed"
   done
+
+  # Collapse any duplicate (now-empty) desktops that monitor -r may have transferred in.
+  bspc monitor "$EDP" -d I II III IV V VI VII VIII IX X
 
   log "========== SINGLE-MONITOR SETUP COMPLETE =========="
 fi
