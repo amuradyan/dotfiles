@@ -22,7 +22,6 @@ else
   # No external connected — collapse X and bspwm back to the internal panel ($EDP) only.
   # Name-agnostic: a stale external may be HDMI-0/DP-1 (sync) or HDMI-1-0/DP-1-0 (offload).
   log "Single monitor mode ($EDP)"
-  source "$SCRIPTS_DIR/lib/migrate_windows.sh"
 
   # Geometry teardown: a disconnected external keeps its last mode/position (e.g. HDMI-1-0 at
   # 3840x2160+0+0), leaving a pointer dead-zone and an oversized 3840x3360 canvas. Turn off any
@@ -38,16 +37,16 @@ else
   log "Extending $EDP to I-X"
   bspc monitor "$EDP" -d I II III IV V VI VII VIII IX X
 
-  # Fold any monitor bspwm still holds (race: its auto-removal hasn't fired) onto the panel,
-  # preserving desktop identity — a window on V stays on V — then drop the stale monitor.
+  # Fold any monitor bspwm still holds (race: its auto-removal hasn't fired) onto the panel.
+  # bspc monitor -r transfers the removed monitor's desktops *with their windows* to the remaining
+  # monitor (identity preserved); the normalize below collapses any name dupes onto the panel.
   for m in $(bspc query -M --names); do
     [ "$m" = "$EDP" ] && continue
-    log "Folding stale monitor $m into $EDP (by desktop name), then removing it"
-    migrate_windows "$m" "$EDP" I II III IV V VI VII VIII IX X
+    log "Folding stale monitor $m into $EDP, then removing it"
     bspc monitor "$m" -r 2>>"$LOG_FILE" || log "WARN: removing $m failed"
   done
 
-  # Collapse any duplicate (now-empty) desktops that monitor -r may have transferred in.
+  # Normalize the panel to I-X (collapses any duplicate empties left by -r).
   bspc monitor "$EDP" -d I II III IV V VI VII VIII IX X
 
   log "========== SINGLE-MONITOR SETUP COMPLETE =========="

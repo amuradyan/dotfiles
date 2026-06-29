@@ -5,7 +5,7 @@ log() { echo "[$(date '+%Y-%m-%d %H:%M:%S.%3N')] [DISPLAY_BOTH] $*" >> "$LOG_FIL
 
 # HDMI + DP both attached. Output names resolved by type for offload/sync parity.
 source ~/.config/bspwm/lib/detect_outputs.sh
-source ~/.config/bspwm/lib/migrate_windows.sh
+source ~/.config/bspwm/lib/desktop_handoff.sh
 ensure_prime_sink
 
 if [ "$GPU_MODE" = sync ]; then
@@ -24,11 +24,12 @@ else
 fi
 
 # Panel owns I-IV and leads the count (super+1..4 -> panel); externals take V-X (HDMI V-VII,
-# DP VIII-X). Hand each external its desktops with their windows (identity-preserving): create the
-# external desktops, migrate by name (monitor-scoped), then shrink the panel so nothing strands on IV.
-bspc monitor "$HDMI" -d V VI VII
-bspc monitor "$DP"   -d VIII IX X
-migrate_windows "$EDP" "$HDMI" V VI VII
-migrate_windows "$EDP" "$DP"   VIII IX X
-bspc monitor "$EDP" -d I II III IV
+# DP VIII-X). Hand each external its desktops (whole, with windows and identity) by ID; eDP keeps
+# I-IV automatically and each external's throwaway default is dropped once empty.
+# Ensure the panel holds the full I-X set first (a fresh boot only auto-creates a single "Desktop", so
+# there would be no V-X to hand over); -d renames the existing desktop to I and creates the rest,
+# preserving any window. After an undock the panel already holds I-X, so this is a no-op.
+bspc monitor "$EDP" -d I II III IV V VI VII VIII IX X
+handoff_desktops "$EDP" "$HDMI" V VI VII
+handoff_desktops "$EDP" "$DP"   VIII IX X
 bspc wm --reorder-monitors "$EDP" "$HDMI" "$DP"
