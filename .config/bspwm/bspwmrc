@@ -27,6 +27,9 @@ $HOME/.config/custom_scripts/suspender.sh &
 xidlehook --not-when-fullscreen --not-when-audio --timer 240 "$HOME/.config/custom_scripts/lock_screen.sh" '' &
 xidlehook --not-when-fullscreen --not-when-audio --timer 1800 'systemctl suspend' '' &
 
+# Offline dictation: hold super + v, speak, release.
+handy --start-hidden &
+
 feh --bg-fill ~/death-star.jpg
 
 bspc config top_padding             -5
