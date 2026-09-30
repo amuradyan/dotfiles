@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 
 xrdb ~/.Xresources
-setxkbmap -option caps:escape
+# All three layouts loaded together; both Shifts cycle them (hold left + tap
+# right = next, the reverse = previous). Loading a non-Latin layout on its own
+# leaves no Latin layout for Ctrl shortcuts and sxhkd letter hotkeys to resolve
+# against, so they go dead.
+setxkbmap -layout us,am,ru -variant ,phonetic-alt,phonetic_winkeys \
+  -option '' -option caps:escape,grp:shifts_toggle,terminate:ctrl_alt_bksp
 
 # Push DISPLAY/XAUTHORITY into the systemd user manager so user services
 # spawned at login (which started before X) get a working env on next start.
@@ -17,8 +22,10 @@ $HOME/.config/bspwm/monitor_hotplug.sh &
 $HOME/.config/bspwm/battery_notifier.sh &
 $HOME/.config/custom_scripts/suspender.sh &
 
-xidlehook --not-when-fullscreen --not-when-audio --timer 240 'setxkbmap us && xsecurelock'  &
-xidlehook --not-when-fullscreen --not-when-audio --timer 1800 'setxkbmap us && systemctl suspend' &
+# --timer takes <seconds> <command> <canceller>; without the third value
+# xidlehook exits at startup.
+xidlehook --not-when-fullscreen --not-when-audio --timer 240 "$HOME/.config/custom_scripts/lock_screen.sh" '' &
+xidlehook --not-when-fullscreen --not-when-audio --timer 1800 'systemctl suspend' '' &
 
 feh --bg-fill ~/death-star.jpg
 

@@ -29,13 +29,6 @@ super + b
 	polybar-msg cmd toggle
 
 #
-# languages
-#
-
-shift + {Shift_L,Shift_R}
-	~/.config/custom_scripts/keyboard_switcher.sh
-
-#
 # alsa
 #
 

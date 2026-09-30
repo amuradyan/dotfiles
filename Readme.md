@@ -77,7 +77,6 @@ These are the generic packages the configs assume exist on `PATH`. On NixOS they
 | `chxk` | screenshot to `/tmp/screenshot.png` and clipboard |
 | `brightness.sh` | backlight up/down |
 | `bluetooth` | polybar bluetooth indicator and toggler |
-| `keyboard_switcher.sh` | cycle xkb layouts (`us` / `ru` / `am`) |
 | `lock_screen.sh`, `logout.sh` | session helpers |
 | `wifi-picker.sh` | rofi-driven SSID picker |
 | `suspender.sh` | idle-suspend helper |
